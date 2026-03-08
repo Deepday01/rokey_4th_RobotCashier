@@ -1,0 +1,10 @@
+# Goal
+Item[] pick_items         # 내용물: items_final[]
+Placement[] place_items   # 내용물: packing_plan[]
+---
+# Result
+bool success
+---
+# Feedback
+string progress           # 현재작업번수/총작업개수
+int32 runtime

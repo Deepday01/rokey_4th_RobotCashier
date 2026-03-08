@@ -1,0 +1,9 @@
+# Goal
+bool start_vision  # 시작 신호, True 가 들어오면 스캔 시작
+---
+# Result
+bool success
+Item[] items_scan   # Item.msg 기반.
+---
+# Feedback
+int32 runtime
