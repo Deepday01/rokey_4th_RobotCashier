@@ -1,0 +1,138 @@
+ros2 run cashier_execute_packing execute_packing_server
+[INFO] [1772947946.908342437] [dsr01.execute_packing_server]: ExecutePacking ActionServer ready
+_robot_id =dsr01
+_robot_model =m0609
+_srv_name_prefix =
+_topic_name_prefix =
+[INFO] [1772947947.989787416] [dsr01.execute_packing_server]: Build execution plan
+[INFO] [1772947947.990160804] [dsr01.execute_packing_server]: build_execution_plan_from_request start
+[INFO] [1772947947.990368101] [dsr01.execute_packing_server]: validate_request_items_and_places: pick_items=2, place_items=2
+[INFO] [1772947947.990553062] [dsr01.execute_packing_server]: validate_request_items_and_places: success
+[INFO] [1772947947.990733451] [dsr01.execute_packing_server]: convert_request_to_internal_models start
+[INFO] [1772947947.990960542] [dsr01.execute_packing_server]: convert_request_to_internal_models done: items=2, placements=2
+[INFO] [1772947947.991139336] [dsr01.execute_packing_server]: [TASK PLAN 1] start: item=물병, object_index=0
+[INFO] [1772947947.991403616] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.991589880] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.991777288] [dsr01.execute_packing_server]: [TASK PLAN 1] normalized pick rpy=(62.496, 179.976, 62.158) | normalized place rpy=(62.496, 179.976, 62.158)
+[INFO] [1772947947.991951584] [dsr01.execute_packing_server]: [RELATIVE ROTATION RAW] roll=0.0, pitch=0.0, yaw=0.0
+[INFO] [1772947947.992126893] [dsr01.execute_packing_server]: [TASK PLAN 1] relative rotation=(0.0, 0.0, 0.0)
+[INFO] [1772947947.992376149] [dsr01.execute_packing_server]: build_rotation_steps_from_pick_and_place start: item=물병
+[INFO] [1772947947.992556655] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.992738612] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.992909369] [dsr01.execute_packing_server]: [RELATIVE ROTATION RAW] roll=0.0, pitch=0.0, yaw=0.0
+[INFO] [1772947947.993083486] [dsr01.execute_packing_server]: relative rotation for item=물병: 0.0, 0.0, 0.0
+[INFO] [1772947947.993262330] [dsr01.execute_packing_server]: build_rotation_steps_from_relative_rotation start: roll=0.0, pitch=0.0, yaw=0.0
+[INFO] [1772947947.993431747] [dsr01.execute_packing_server]: rotation step generation disabled for raw-rpy test mode: total_steps=0
+[INFO] [1772947947.993603451] [dsr01.execute_packing_server]: no rotation required
+[INFO] [1772947947.993786043] [dsr01.execute_packing_server]: [TASK PLAN 1] final pick state after rotation: rpy=(62.496, 179.976, 62.158), size=(60.0, 60.0, 200.0)
+[INFO] [1772947947.993970825] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.994222730] [dsr01.execute_packing_server]: normalize_item_for_pick: item=물병, rpy (62.496, 179.976, 62.158) -> (62.496, 179.976, 62.158)
+[INFO] [1772947947.994422000] [dsr01.execute_packing_server]: compute_grip_width: item=물병, width=60.0, depth=60.0, base=60.0, margin=2.0, result=58.0
+[INFO] [1772947947.994617514] [dsr01.execute_packing_server]: build_pick_plan done: item=물병, approach_pose=(250.0,250.0,300.0,62.496,179.976,62.158), pick_pose=(250.0,250.0,200.0,62.496,179.976,62.158), grip_width=58.0
+[INFO] [1772947947.994800605] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.994980108] [dsr01.execute_packing_server]: normalize_placement_for_place: object_index=0, rpy (62.496, 179.976, 62.158) -> (62.496, 179.976, 62.158)
+[INFO] [1772947947.995170076] [dsr01.execute_packing_server]: build_place_plan done: object_index=0, approach_pose=(200.0,100.0,300.0,62.496,179.976,62.158), place_pose=(200.0,100.0,200.0,62.496,179.976,62.158)
+[INFO] [1772947947.995351233] [dsr01.execute_packing_server]: [TASK PLAN 1] done: item=물병, rotation_steps=0, grip_width=58.0
+[INFO] [1772947947.995527593] [dsr01.execute_packing_server]: [TASK PLAN 2] start: item=박스, object_index=1
+[INFO] [1772947947.995706662] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.995894745] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.996099533] [dsr01.execute_packing_server]: [TASK PLAN 2] normalized pick rpy=(62.496, 179.976, 62.158) | normalized place rpy=(62.496, 179.976, 62.158)
+[INFO] [1772947947.996276330] [dsr01.execute_packing_server]: [RELATIVE ROTATION RAW] roll=0.0, pitch=0.0, yaw=0.0
+[INFO] [1772947947.996445845] [dsr01.execute_packing_server]: [TASK PLAN 2] relative rotation=(0.0, 0.0, 0.0)
+[INFO] [1772947947.996616632] [dsr01.execute_packing_server]: build_rotation_steps_from_pick_and_place start: item=박스
+[INFO] [1772947947.996789087] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.996956303] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.997123736] [dsr01.execute_packing_server]: [RELATIVE ROTATION RAW] roll=0.0, pitch=0.0, yaw=0.0
+[INFO] [1772947947.997300103] [dsr01.execute_packing_server]: relative rotation for item=박스: 0.0, 0.0, 0.0
+[INFO] [1772947947.997473080] [dsr01.execute_packing_server]: build_rotation_steps_from_relative_rotation start: roll=0.0, pitch=0.0, yaw=0.0
+[INFO] [1772947947.997642389] [dsr01.execute_packing_server]: rotation step generation disabled for raw-rpy test mode: total_steps=0
+[INFO] [1772947947.997809934] [dsr01.execute_packing_server]: no rotation required
+[INFO] [1772947947.997997599] [dsr01.execute_packing_server]: [TASK PLAN 2] final pick state after rotation: rpy=(62.496, 179.976, 62.158), size=(120.0, 80.0, 100.0)
+[INFO] [1772947947.998172086] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947947.998440754] [dsr01.execute_packing_server]: normalize_item_for_pick: item=박스, rpy (62.496, 179.976, 62.158) -> (62.496, 179.976, 62.158)
+[INFO] [1772947947.998837091] [dsr01.execute_packing_server]: compute_grip_width: item=박스, width=120.0, depth=80.0, base=80.0, margin=2.0, result=78.0
+[INFO] [1772947947.999366836] [dsr01.execute_packing_server]: build_pick_plan done: item=박스, approach_pose=(0.0,0.0,100.0,62.496,179.976,62.158), pick_pose=(0.0,0.0,0.0,62.496,179.976,62.158), grip_width=78.0
+[INFO] [1772947947.999844474] [dsr01.execute_packing_server]: [POSE NORMALIZER DISABLED] use raw rpy=(62.496,179.976,62.158)
+[INFO] [1772947948.000300185] [dsr01.execute_packing_server]: normalize_placement_for_place: object_index=1, rpy (62.496, 179.976, 62.158) -> (62.496, 179.976, 62.158)
+[INFO] [1772947948.000777286] [dsr01.execute_packing_server]: build_place_plan done: object_index=1, approach_pose=(0.0,0.0,100.0,62.496,179.976,62.158), place_pose=(0.0,0.0,0.0,62.496,179.976,62.158)
+[INFO] [1772947948.001238988] [dsr01.execute_packing_server]: [TASK PLAN 2] done: item=박스, rotation_steps=0, grip_width=78.0
+[INFO] [1772947948.001684616] [dsr01.execute_packing_server]: build_execution_plan_from_request done: total_tasks=2
+[INFO] [1772947948.819010693] [dsr01.execute_packing_server]: execute_plan_with_callbacks start
+[INFO] [1772947948.819495520] [dsr01.execute_packing_server]: execute task start: task=1, item=물병
+[INFO] [1772947948.819949970] [dsr01.execute_packing_server]: pick execute request: task=1, grip_width=58.0
+[INFO] [1772947948.820401277] [dsr01.execute_packing_server]: [PICK] task=1 grip_width=58.0
+[INFO] [1772947951.519582254] [dsr01.execute_packing_server]: [GRIPPER] open
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1772947953.819560899] [dsr01.execute_packing_server]: [GRIPPER] close
+Start closing gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+An internal- or external grip is detected.
+[INFO] [1772947957.519446591] [dsr01.execute_packing_server]: place execute request: task=1
+[INFO] [1772947957.519655440] [dsr01.execute_packing_server]: [PLACE] task=1
+[INFO] [1772947962.719566518] [dsr01.execute_packing_server]: [GRIPPER] open
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1772947966.119930887] [dsr01.execute_packing_server]: execute task done: task=1, item=물병
+[INFO] [1772947966.120146450] [dsr01.execute_packing_server]: execute task start: task=2, item=박스
+[INFO] [1772947966.120331913] [dsr01.execute_packing_server]: pick execute request: task=2, grip_width=78.0
+[INFO] [1772947966.120515078] [dsr01.execute_packing_server]: [PICK] task=2 grip_width=78.0
+[INFO] [1772947966.343854062] [dsr01.execute_packing_server]: [GRIPPER] open
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1772947966.494738751] [dsr01.execute_packing_server]: [GRIPPER] close
+Start closing gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+An internal- or external grip is detected.
+[INFO] [1772947968.119722422] [dsr01.execute_packing_server]: place execute request: task=2
+[INFO] [1772947968.119934682] [dsr01.execute_packing_server]: [PLACE] task=2
+[INFO] [1772947968.368866093] [dsr01.execute_packing_server]: [GRIPPER] open
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1772947969.720074154] [dsr01.execute_packing_server]: execute task done: task=2, item=박스
+[INFO] [1772947969.720273996] [dsr01.execute_packing_server]: execute_plan_with_callbacks done

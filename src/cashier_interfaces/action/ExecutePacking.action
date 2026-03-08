@@ -1,0 +1,7 @@
+robot_msgs/Item[] pick_items
+robot_msgs/Placement[] place_items
+---
+bool success
+---
+string progress
+int32 runtime
