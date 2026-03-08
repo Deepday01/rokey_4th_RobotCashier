@@ -1,0 +1,37 @@
+{
+  "caramel_A01": {
+    "name": "caramel",
+    "width": 74.0,
+    "height": 48.0,
+    "depth": 23.0,
+    "durability": 1
+  },
+  "caramel_A02": {
+    "name": "caramel",
+    "width": 74.0,
+    "height": 48.0,
+    "depth": 23.0,
+    "durability": 1
+  },
+  "insect": {
+    "name": "insect",
+    "width": 83.0,
+    "height": 53.0,
+    "depth": 41.0,
+    "durability": 3
+  },
+  "candy": {
+    "name": "candy",
+    "width": 114.0,
+    "height": 79.0,
+    "depth": 43.0,
+    "durability": 2
+  },
+  "halls": {
+    "name": "halls",
+    "width": 78.0,
+    "height": 52.0,
+    "depth": 16.0,
+    "durability": 5
+  }
+}

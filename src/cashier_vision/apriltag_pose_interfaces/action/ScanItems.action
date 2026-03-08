@@ -1,0 +1,11 @@
+# goal
+bool start_vision
+
+---
+# result
+bool success
+Item[] items_scan
+
+---
+# feedback
+int32 runtime
