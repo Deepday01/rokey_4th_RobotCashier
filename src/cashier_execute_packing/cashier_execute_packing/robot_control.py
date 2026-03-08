@@ -143,52 +143,152 @@ def close_gripper(node):
 # Executor callbacks
 # ==============================
 
-def execute_rotation_step(node, task, step_index, step):
-    """
-    회전 단계 실행
-    """
-    node.get_logger().info(
-        f"[ROTATION] task={task.task_index} step={step_index} axis={step.axis}"
+def execute_pick_and_stage_on_rotation_station(executor, task, stage_plan):
+    logger = executor.get_logger()
+
+    # 1. 원위치 접근
+    executor.robot.move_to_pose(stage_plan.pick_approach_pose)
+
+    # 2. pick 위치 이동
+    executor.robot.move_to_pose(stage_plan.pick_pose)
+
+    # 3. 그리퍼로 물체 grasp
+    executor.robot.gripper_open()
+    executor.robot.gripper_close(task.grip_width)
+
+    # 4. pick 후 상승
+    executor.robot.move_to_pose(stage_plan.pick_retreat_pose)
+
+    # 5. 회전 스테이션 접근
+    executor.robot.move_to_pose(stage_plan.station_approach_pose)
+
+    # 6. 회전 스테이션 위에 place
+    executor.robot.move_to_pose(stage_plan.station_place_pose)
+    executor.robot.gripper_open()
+
+    # 7. 회전 스테이션에서 이탈
+    executor.robot.move_to_pose(stage_plan.station_retreat_pose)
+
+
+def execute_align_object_on_rotation_station(executor, task, align_plan):
+    logger = executor.get_logger()
+    logger.info(
+        f"[TASK {task.task_index}] "
+        "execute_align_object_on_rotation_station start"
     )
 
-    item_after = step.item_after
+    if not getattr(align_plan, "required", False):
+        logger.info(
+            f"[TASK {task.task_index}] "
+            "align skip: alignment not required"
+        )
+        return
 
-    safe_rise()
+    # 예시:
+    # align_plan.steps = [
+    #     {"rx": 90.0, "ry": 0.0, "rz": 0.0},
+    #     {"rx": 0.0, "ry": 0.0, "rz": 90.0},
+    # ]
 
-    move_to_pose(item_after.pose)
+    for step_index, step in enumerate(align_plan.steps, start=1):
+        rx = step.get("rx", 0.0)
+        ry = step.get("ry", 0.0)
+        rz = step.get("rz", 0.0)
 
+        logger.info(
+            f"[TASK {task.task_index}] "
+            f"[ALIGN STEP {step_index}] "
+            f"rx={rx}, ry={ry}, rz={rz}"
+        )
 
-def execute_pick_plan(node, task, pick_plan):
-    node.get_logger().info(
-        f"[PICK] task={task.task_index} grip_width={pick_plan.grip_width}"
+        executor.rotate_object_on_rotation_station(
+            rx_deg=rx,
+            ry_deg=ry,
+            rz_deg=rz,
+        )
+
+    logger.info(
+        f"[TASK {task.task_index}] "
+        "execute_align_object_on_rotation_station done"
     )
 
-    safe_rise()
+def execute_pick_and_place_to_box(executor, task, box_plan):
+    logger = executor.get_logger()
+    logger.info(
+        f"[TASK {task.task_index}] "
+        "execute_pick_and_place_to_box start"
+    )
 
-    move_to_pose(pick_plan.approach_pose)
+    # 1. 회전 스테이션 위 물체 다시 pick
+    executor.robot.move_to_pose(box_plan.station_pick_approach_pose)
+    executor.robot.move_to_pose(box_plan.station_pick_pose)
+    executor.robot.gripper_close(task.grip_width)
+    executor.robot.move_to_pose(box_plan.station_pick_retreat_pose)
 
-    open_gripper(node)
+    # 2. 박스 접근
+    executor.robot.move_to_pose(box_plan.box_approach_pose)
 
-    move_to_pose(pick_plan.pick_pose)
+    # 3. 박스 내 최종 배치 위치로 이동
+    executor.robot.move_to_pose(box_plan.box_place_pose)
 
-    close_gripper(node)
+    # 4. 물체 release
+    executor.robot.gripper_open()
 
-    safe_rise()
+    # 5. 박스에서 안전 이탈
+    executor.robot.move_to_pose(box_plan.box_retreat_pose)
+
+    logger.info(
+        f"[TASK {task.task_index}] "
+        "execute_pick_and_place_to_box done"
+    )
+
+# def execute_rotation_step(node, task, step_index, step):
+#     """
+#     회전 단계 실행
+#     """
+#     node.get_logger().info(
+#         f"[ROTATION] task={task.task_index} step={step_index} axis={step.axis}"
+#     )
+
+#     item_after = step.item_after
+
+#     safe_rise()
+
+#     move_to_pose(item_after.pose)
 
 
-def execute_place_plan(node, task, place_plan):
-    node.get_logger().info(f"[PLACE] task={task.task_index}")
+# def execute_pick_plan(node, task, pick_plan):
+#     node.get_logger().info(
+#         f"[PICK] task={task.task_index} grip_width={pick_plan.grip_width}"
+#     )
 
-    safe_rise()
+#     safe_rise()
 
-    move_to_pose(place_plan.approach_pose)
+#     move_to_pose(pick_plan.approach_pose)
 
-    move_to_pose(place_plan.place_pose)
+#     open_gripper(node)
 
-    open_gripper(node)
+#     move_to_pose(pick_plan.pick_pose)
 
-    safe_rise()
+#     close_gripper(node)
 
+#     safe_rise()
+
+
+
+
+# def execute_place_plan(node, task, place_plan):
+#     node.get_logger().info(f"[PLACE] task={task.task_index}")
+
+#     safe_rise()
+
+#     move_to_pose(place_plan.approach_pose)
+
+#     move_to_pose(place_plan.place_pose)
+
+#     open_gripper(node)
+
+#     safe_rise()
 
 # ==============================
 # Action server
@@ -244,6 +344,7 @@ class ExecutePackingServer(Node):
 
             self.get_logger().info("Build execution plan")
 
+            # 플랜 요청
             plan = build_execution_plan_from_request(
                 pick_items=req.pick_items,
                 place_items=req.place_items,
@@ -252,19 +353,39 @@ class ExecutePackingServer(Node):
 
             move_ready()
 
+            def _on_pick_and_stage_on_rotation_station(task, stage_plan):
+                execute_pick_and_stage_on_rotation_station(self, task, stage_plan)
+
+
+            def _on_align_object_on_rotation_station(task, align_plan):
+                execute_align_object_on_rotation_station(self, task, align_plan)
+
+
+            def _on_pick_and_place_to_box(task, box_plan):
+                execute_pick_and_place_to_box(self, task, box_plan)
+
+
             execute_plan_with_callbacks(
                 plan=plan,
-                on_rotation_step=lambda task, i, step: execute_rotation_step(
-                    self, task, i, step
-                ),
-                on_pick_plan=lambda task, pick_plan: execute_pick_plan(
-                    self, task, pick_plan
-                ),
-                on_place_plan=lambda task, place_plan: execute_place_plan(
-                    self, task, place_plan
-                ),
+                on_pick_and_stage_on_rotation_station=_on_pick_and_stage_on_rotation_station,
+                on_align_object_on_rotation_station=_on_align_object_on_rotation_station,
+                on_pick_and_place_to_box=_on_pick_and_place_to_box,
                 logger=self.get_logger(),
             )
+
+            # execute_plan_with_callbacks(
+            #     plan=plan,
+            #     on_pick_plan=lambda task, pick_plan: execute_pick_plan(
+            #         self, task, pick_plan
+            #     ),
+            #     on_rotation_step=lambda task, i, step: execute_rotation_step(
+            #         self, task, i, step
+            #     ),
+            #     on_place_plan=lambda task, place_plan: execute_place_plan(
+            #         self, task, place_plan
+            #     ),
+            #     logger=self.get_logger(),
+            # )
 
             goal_handle.succeed()
 

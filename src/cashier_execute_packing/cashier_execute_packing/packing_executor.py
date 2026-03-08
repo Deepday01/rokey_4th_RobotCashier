@@ -11,6 +11,10 @@ from .packing_models import (
     RotationStep,
     item_from_ros_msg,
     placement_from_ros_msg,
+    StagePlan,
+    AlignStep,
+    AlignPlan,
+    BoxPlan,
 )
 from .pose_normalizer import (
     normalize_pose_rpy,
@@ -24,6 +28,8 @@ from .pick_place_planner import (
     build_pick_plan,
     build_place_plan,
 )
+
+
 
 
 # ============================
@@ -49,26 +55,73 @@ def _log(logger, level: str, msg: str):
 # Execution models
 # ============================
 
+from dataclasses import dataclass
+from typing import Any, List
+
+
 @dataclass
 class PackingTaskPlan:
     task_index: int
-    object_index: int
-    item: ItemState
-    placement: PlacementState
-    normalized_pick_item: ItemState
-    normalized_place: PlacementState
-    rotation_steps: List[RotationStep]
-    final_pick_item: ItemState
-    pick_plan: PickPlan
-    place_plan: PlacePlan
+    item: Any
+    stage_plan: StagePlan
+    align_plan: AlignPlan
+    box_plan: BoxPlan
+    grip_width: float = 0.0
 
 
 @dataclass
 class PackingExecutionPlan:
+    """
+    전체 포장 작업 실행 계획
+    """
     tasks: List[PackingTaskPlan]
 
-    def is_empty(self) -> bool:
-        return len(self.tasks) == 0
+def build_stage_plan(item, placement):
+    pick_pose = item.pick_pose
+
+    return StagePlan(
+        pick_approach_pose=pick_pose.approach_pose,
+        pick_pose=pick_pose.target_pose,
+        pick_retreat_pose=pick_pose.retreat_pose,
+        station_approach_pose=placement.rotation_station.approach_pose,
+        station_place_pose=placement.rotation_station.place_pose,
+        station_retreat_pose=placement.rotation_station.retreat_pose,
+    )
+
+
+def build_align_plan(item, placement):
+    delta_rx = placement.place_pose.rx - item.pick_pose.target_pose.rx
+    delta_ry = placement.place_pose.ry - item.pick_pose.target_pose.ry
+    delta_rz = placement.place_pose.rz - item.pick_pose.target_pose.rz
+
+    steps = []
+
+    if abs(delta_rx) > 1e-3:
+        steps.append(AlignStep(rx_deg=delta_rx))
+
+    if abs(delta_ry) > 1e-3:
+        steps.append(AlignStep(ry_deg=delta_ry))
+
+    if abs(delta_rz) > 1e-3:
+        steps.append(AlignStep(rz_deg=delta_rz))
+
+    return AlignPlan(
+        required=len(steps) > 0,
+        steps=steps,
+    )
+
+
+def build_box_plan(item, placement):
+    return BoxPlan(
+        station_pick_approach_pose=placement.rotation_station.pick_approach_pose,
+        station_pick_pose=placement.rotation_station.pick_pose,
+        station_pick_retreat_pose=placement.rotation_station.pick_retreat_pose,
+        box_approach_pose=placement.place_pose.approach_pose,
+        box_place_pose=placement.place_pose.target_pose,
+        box_retreat_pose=placement.place_pose.retreat_pose,
+    )
+
+
 
 
 # ============================
@@ -169,100 +222,19 @@ def convert_request_to_internal_models(
 # ============================
 # Single task planner
 # ============================
+def build_single_task_plan(task_index, item, placement, logger=None):
+    stage_plan = build_stage_plan(item, placement)
+    align_plan = build_align_plan(item, placement)
+    box_plan = build_box_plan(item, placement)
 
-def build_single_task_plan(
-    task_index: int,
-    item: ItemState,
-    placement: PlacementState,
-    logger=None,
-) -> PackingTaskPlan:
-    """
-    단일 item / placement 에 대한 전체 실행 계획 생성
-    """
-    _log(
-        logger,
-        "info",
-        f"[TASK PLAN {task_index}] start: item={item.name}, object_index={placement.object_index}",
-    )
-
-    normalized_pick_item = item.copy()
-    normalized_pick_item.pose = normalize_pose_rpy(item.pose, logger)
-
-    normalized_place = placement.copy()
-    normalized_place.pose = normalize_pose_rpy(placement.pose, logger)
-
-    _log(
-        logger,
-        "info",
-        f"[TASK PLAN {task_index}] normalized pick rpy={normalized_pick_item.pose.rpy()} "
-        f"| normalized place rpy={normalized_place.pose.rpy()}",
-    )
-
-    relative_rotation = relative_rotation_from_pick_to_place(
-        normalized_pick_item.pose,
-        normalized_place.pose,
-        logger,
-    )
-
-    _log(
-        logger,
-        "info",
-        f"[TASK PLAN {task_index}] relative rotation="
-        f"({relative_rotation.roll}, {relative_rotation.pitch}, {relative_rotation.yaw})",
-    )
-
-    rotation_steps = build_rotation_steps_from_pick_and_place(
-        item=normalized_pick_item,
-        place_pose=normalized_place.pose,
-        logger=logger,
-    )
-
-    summarize_rotation_steps(rotation_steps, logger)
-
-    final_pick_item = normalized_pick_item.copy()
-    if rotation_steps:
-        final_pick_item = rotation_steps[-1].item_after.copy()
-
-    _log(
-        logger,
-        "info",
-        f"[TASK PLAN {task_index}] final pick state after rotation: "
-        f"rpy={final_pick_item.pose.rpy()}, "
-        f"size=({final_pick_item.size.width}, {final_pick_item.size.depth}, {final_pick_item.size.height})",
-    )
-
-    pick_plan = build_pick_plan(
-        item=final_pick_item,
-        logger=logger,
-    )
-
-    place_plan = build_place_plan(
-        placement=normalized_place,
-        logger=logger,
-    )
-
-    plan = PackingTaskPlan(
+    return PackingTaskPlan(
         task_index=task_index,
-        object_index=placement.object_index,
-        item=item.copy(),
-        placement=placement.copy(),
-        normalized_pick_item=normalized_pick_item,
-        normalized_place=normalized_place,
-        rotation_steps=rotation_steps,
-        final_pick_item=final_pick_item,
-        pick_plan=pick_plan,
-        place_plan=place_plan,
+        item=item,
+        stage_plan=stage_plan,
+        align_plan=align_plan,
+        box_plan=box_plan,
+        grip_width=item.grip.width_mm,
     )
-
-    _log(
-        logger,
-        "info",
-        f"[TASK PLAN {task_index}] done: item={item.name}, "
-        f"rotation_steps={len(rotation_steps)}, grip_width={pick_plan.grip_width}",
-    )
-
-    return plan
-
 
 # ============================
 # Full execution planner
@@ -367,71 +339,23 @@ def summarize_execution_plan(plan: PackingExecutionPlan, logger=None) -> str:
 # ============================
 # Optional execution bridge
 # ============================
-
 def execute_plan_with_callbacks(
-    plan: PackingExecutionPlan,
-    on_task_start=None,
-    on_rotation_step=None,
-    on_pick_plan=None,
-    on_place_plan=None,
-    on_task_done=None,
+    plan,
+    on_pick_and_stage_on_rotation_station,
+    on_align_object_on_rotation_station,
+    on_pick_and_place_to_box,
     logger=None,
-) -> None:
+):
     """
-    실제 로봇 제어는 외부 callback 으로 연결하는 브리지 함수
+    전체 execution plan 을 순회하며
+    각 task를 3단계로 실행한다.
 
-    callback signature 예시
-    - on_task_start(task_plan)
-    - on_rotation_step(task_plan, step_index, step)
-    - on_pick_plan(task_plan, pick_plan)
-    - on_place_plan(task_plan, place_plan)
-    - on_task_done(task_plan)
+    1. pick_and_stage_on_rotation_station
+    2. align_object_on_rotation_station
+    3. pick_and_place_to_box
     """
-    _log(logger, "info", "execute_plan_with_callbacks start")
 
     for task in plan.tasks:
-        _log(
-            logger,
-            "info",
-            f"execute task start: task={task.task_index}, item={task.item.name}",
-        )
-
-        if on_task_start is not None:
-            on_task_start(task)
-
-        for step_index, step in enumerate(task.rotation_steps, start=1):
-            _log(
-                logger,
-                "info",
-                f"rotation execute request: task={task.task_index}, "
-                f"step={step_index}, axis={step.axis}, angle={step.angle_deg}",
-            )
-            if on_rotation_step is not None:
-                on_rotation_step(task, step_index, step)
-
-        _log(
-            logger,
-            "info",
-            f"pick execute request: task={task.task_index}, grip_width={task.pick_plan.grip_width}",
-        )
-        if on_pick_plan is not None:
-            on_pick_plan(task, task.pick_plan)
-
-        _log(
-            logger,
-            "info",
-            f"place execute request: task={task.task_index}",
-        )
-        if on_place_plan is not None:
-            on_place_plan(task, task.place_plan)
-
-        if on_task_done is not None:
-            on_task_done(task)
-
-        _log(
-            logger,
-            "info",
-            f"execute task done: task={task.task_index}, item={task.item.name}",
-        )
-
-    _log(logger, "info", "execute_plan_with_callbacks done")
+        on_pick_and_stage_on_rotation_station(task, task.stage_plan)
+        on_align_object_on_rotation_station(task, task.align_plan)
+        on_pick_and_place_to_box(task, task.box_plan)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
-from typing import Tuple
+from dataclasses import dataclass, field
+from typing import Tuple, Any, List
 
 
 @dataclass
@@ -141,4 +141,64 @@ def placement_from_ros_msg(placement_msg) -> PlacementState:
             pitch=placement_msg.pitch,
             yaw=placement_msg.yaw,
         ),
+    )
+
+
+
+@dataclass
+class StagePlan:
+    pick_approach_pose: Any
+    pick_pose: Any
+    pick_retreat_pose: Any
+    station_approach_pose: Any
+    station_place_pose: Any
+    station_retreat_pose: Any
+
+
+@dataclass
+class AlignStep:
+    rx_deg: float = 0.0
+    ry_deg: float = 0.0
+    rz_deg: float = 0.0
+
+
+@dataclass
+class AlignPlan:
+    required: bool
+    steps: List[AlignStep] = field(default_factory=list)
+
+
+@dataclass
+class BoxPlan:
+    station_pick_approach_pose: Any
+    station_pick_pose: Any
+    station_pick_retreat_pose: Any
+    box_approach_pose: Any
+    box_place_pose: Any
+    box_retreat_pose: Any
+
+
+@dataclass
+class PackingTaskPlan:
+    task_index: int
+    item: Any
+    stage_plan: StagePlan
+    align_plan: AlignPlan
+    box_plan: BoxPlan
+    grip_width: float = 0.0
+
+
+@dataclass
+class PackingExecutionPlan:
+    tasks: List[PackingTaskPlan]
+
+
+def _offset_pose_z(pose, dz: float):
+    return type(pose)(
+        x=pose.x,
+        y=pose.y,
+        z=pose.z + dz,
+        rx=pose.rx,
+        ry=pose.ry,
+        rz=pose.rz,
     )
