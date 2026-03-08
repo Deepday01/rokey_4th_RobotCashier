@@ -1,0 +1,11 @@
+# Goal
+string mode      # WAKEUP, EDIT
+Item[] items_in  # EDIT에서는 items_scanned[]가 들어감
+---
+# Result
+bool success     # 
+int32 command    # 명령 내용
+Item[] items_out
+---
+# Feedback
+int32 runtime
