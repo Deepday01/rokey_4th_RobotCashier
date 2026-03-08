@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>cashier_plan_packing</name>
+  <name>cashier_execute_packing</name>
   <version>0.0.0</version>
   <description>Robot control package</description>
 

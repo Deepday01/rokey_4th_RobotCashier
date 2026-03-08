@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'cashier_plan_packing'
+package_name = 'cashier_execute_packing'
 
 setup(
     name=package_name,
@@ -24,9 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'robot_control = cashier_plan_packing.robot_control:main',
-            'pick_place_client = cashier_plan_packing.pick_place_client:main',
-            'check_robot_state_recovery = cashier_plan_packing.check_robot_state_recovery:main',
+            'robot_control = cashier_execute_packing.robot_control:main',
+            'pick_place_client = cashier_execute_packing.pick_place_client:main',
+            'check_robot_state_recovery = cashier_execute_packing.check_robot_state_recovery:main',
         ],
     },
 )
