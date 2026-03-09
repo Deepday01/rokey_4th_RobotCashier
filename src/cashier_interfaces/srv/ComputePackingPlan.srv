@@ -1,4 +1,4 @@
-cashier_interfaces/ItemSpec[] items
+cashier_interfaces/Item[] items
 ---
 bool success
 cashier_interfaces/Placement[] placements

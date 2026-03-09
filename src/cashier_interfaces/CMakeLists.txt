@@ -10,7 +10,6 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Item.msg"
-  "msg/ItemSpec.msg"
   "msg/Placement.msg"
   "srv/ComputePackingPlan.srv"
   "action/ExecutePacking.action"

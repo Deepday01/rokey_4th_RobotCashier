@@ -1,8 +1,8 @@
 string item_id
 string name
-float64 width
-float64 depth
-float64 height
+int32 width
+int32 depth
+int32 height
 int32 durability
 float64 x
 float64 y
