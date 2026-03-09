@@ -9,8 +9,7 @@ setup(
     version='0.0.0',
     packages=[package_name],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
     ],
@@ -25,6 +24,10 @@ setup(
         'console_scripts': [
             'workflow_node = cashier_workflow.workflow_node:main',
             'demo_backend_node = cashier_workflow.demo_backend_node:main',
+            'demo_voice_node = cashier_workflow.demo_voice_node:main',
+            'demo_vision_node = cashier_workflow.demo_vision_node:main',
+            'demo_plan_packing_node = cashier_workflow.demo_plan_packing_node:main',
+            'demo_execute_packing_node = cashier_workflow.demo_execute_packing_node:main',
         ],
     },
 )
