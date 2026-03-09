@@ -122,11 +122,15 @@ class ExecutePackingServer(Node):
         )
 
     def goal_callback(self, goal_request):
+        self.get_logger().info("goal_callback()!!!")
+
         if self._busy:
             return GoalResponse.REJECT
         return GoalResponse.ACCEPT
 
     def cancel_callback(self, goal_handle):
+        self.get_logger().info("cancel_callback()!!!")
+
         return CancelResponse.ACCEPT
 
     def rotate_object_on_rotation_station(self, rx_deg: float = 0.0, ry_deg: float = 0.0, rz_deg: float = 0.0) -> None:
@@ -164,14 +168,88 @@ class ExecutePackingServer(Node):
         self.robot.move_to_pose(box_plan.box_retreat_pose)
 
     def execute_callback(self, goal_handle):
+        self.get_logger().info("execute_callback()!!!")
+
         self._busy = True
         result = ExecutePacking.Result()
         try:
+
             request = goal_handle.request
             plan = build_execution_plan_from_request(
                 pick_items=request.pick_items,
                 place_items=request.place_items,
             )
+
+
+
+
+            # 디버깅 시작
+
+            self.get_logger().info("===== Execution Plan Debug =====")
+
+            self.get_logger().info(f"task_count={len(plan.tasks)}")
+
+            for task in plan.tasks:
+
+                item_pose = task.item.pose
+                place_pose = task.placement.pose
+
+                station_place = task.stage_plan.station_place_pose
+                station_pick = task.box_plan.station_pick_pose
+                box_place = task.box_plan.box_place_pose
+
+                self.get_logger().info(
+                    f"[TASK {task.task_index}] item={task.item.name} "
+                    f"grip_width={task.grip_width}"
+                )
+
+                self.get_logger().info(
+                    f"  pick_pose=({item_pose.x:.3f}, {item_pose.y:.3f}, {item_pose.z:.3f}) "
+                    f"rpy=({item_pose.roll:.3f}, {item_pose.pitch:.3f}, {item_pose.yaw:.3f})"
+                )
+
+                self.get_logger().info(
+                    f"  place_pose=({place_pose.x:.3f}, {place_pose.y:.3f}, {place_pose.z:.3f}) "
+                    f"rpy=({place_pose.roll:.3f}, {place_pose.pitch:.3f}, {place_pose.yaw:.3f})"
+                )
+
+                self.get_logger().info(
+                    f"  station_place=({station_place.x:.3f}, {station_place.y:.3f}, {station_place.z:.3f})"
+                )
+
+                self.get_logger().info(
+                    f"  station_pick=({station_pick.x:.3f}, {station_pick.y:.3f}, {station_pick.z:.3f})"
+                )
+
+                self.get_logger().info(
+                    f"  box_place=({box_place.x:.3f}, {box_place.y:.3f}, {box_place.z:.3f})"
+                )
+
+                self.get_logger().info(
+                    f"  align_required={task.align_plan.required}"
+                )
+
+                if task.align_plan.required:
+                    for i, step in enumerate(task.align_plan.steps, start=1):
+                        self.get_logger().info(
+                            f"    align_step {i} "
+                            f"rx={step.rx_deg} "
+                            f"ry={step.ry_deg} "
+                            f"rz={step.rz_deg}"
+                        )
+
+            self.get_logger().info("===== Execution Plan Debug End =====")
+
+
+            # 디버깅 종료
+
+
+
+
+
+
+
+
             self.robot.move_ready()
             execute_plan_with_callbacks(
                 plan=plan,
@@ -179,10 +257,18 @@ class ExecutePackingServer(Node):
                 on_align_object_on_rotation_station=self.execute_align_object_on_rotation_station,
                 on_pick_and_place_to_box=self.execute_pick_and_place_to_box,
             )
+
             goal_handle.succeed()
             result.success = True
             return result
-        except Exception:
+        except Exception as e:
+
+            # 디버깅
+            self.get_logger().error(f"[TASK FAILED] {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+
+
             goal_handle.abort()
             result.success = False
             return result

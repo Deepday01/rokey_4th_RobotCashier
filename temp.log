@@ -1,6 +1,17 @@
-[INFO] [1772951025.536500096] [dsr01.execute_packing_server]: ===== EXECUTION PLAN DUMP =====
-[INFO] [1772951025.536663115] [dsr01.execute_packing_server]: [TASK 1] item=물병 rotation_steps=[] grip_width=?
-[INFO] [1772951025.536873455] [dsr01.execute_packing_server]: [TASK ATTRS] {'task_index': 1, 'object_index': 0, 'item': ItemState(item_id='item_001', name='물병', pose=Pose3D(x=250.0, y=250.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158), size=Size3D(width=60.0, depth=60.0, height=200.0), durability=4), 'placement': PlacementState(object_index=0, pose=Pose3D(x=200.0, y=100.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158)), 'normalized_pick_item': ItemState(item_id='item_001', name='물병', pose=Pose3D(x=250.0, y=250.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158), size=Size3D(width=60.0, depth=60.0, height=200.0), durability=4), 'normalized_place': PlacementState(object_index=0, pose=Pose3D(x=200.0, y=100.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158)), 'rotation_steps': [], 'final_pick_item': ItemState(item_id='item_001', name='물병', pose=Pose3D(x=250.0, y=250.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158), size=Size3D(width=60.0, depth=60.0, height=200.0), durability=4), 'pick_plan': PickPlan(approach_pose=Pose3D(x=250.0, y=250.0, z=300.0, roll=62.496, pitch=179.976, yaw=62.158), pick_pose=Pose3D(x=250.0, y=250.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158), grip_width=58.0), 'place_plan': PlacePlan(approach_pose=Pose3D(x=200.0, y=100.0, z=300.0, roll=62.496, pitch=179.976, yaw=62.158), place_pose=Pose3D(x=200.0, y=100.0, z=200.0, roll=62.496, pitch=179.976, yaw=62.158))}
-[INFO] [1772951025.537060103] [dsr01.execute_packing_server]: [TASK 2] item=박스 rotation_steps=[] grip_width=?
-[INFO] [1772951025.537255726] [dsr01.execute_packing_server]: [TASK ATTRS] {'task_index': 2, 'object_index': 1, 'item': ItemState(item_id='item_002', name='박스', pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158), size=Size3D(width=120.0, depth=80.0, height=100.0), durability=3), 'placement': PlacementState(object_index=1, pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158)), 'normalized_pick_item': ItemState(item_id='item_002', name='박스', pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158), size=Size3D(width=120.0, depth=80.0, height=100.0), durability=3), 'normalized_place': PlacementState(object_index=1, pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158)), 'rotation_steps': [], 'final_pick_item': ItemState(item_id='item_002', name='박스', pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158), size=Size3D(width=120.0, depth=80.0, height=100.0), durability=3), 'pick_plan': PickPlan(approach_pose=Pose3D(x=0.0, y=0.0, z=100.0, roll=62.496, pitch=179.976, yaw=62.158), pick_pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158), grip_width=78.0), 'place_plan': PlacePlan(approach_pose=Pose3D(x=0.0, y=0.0, z=100.0, roll=62.496, pitch=179.976, yaw=62.158), place_pose=Pose3D(x=0.0, y=0.0, z=0.0, roll=62.496, pitch=179.976, yaw=62.158))}
-[INFO] [1772951025.537422800] [dsr01.execute_packing_server]: ==============================
+
+[INFO] [1773032407.498424747] [dsr01.execute_packing_server]: ===== Execution Plan Debug =====
+[INFO] [1773032407.498756825] [dsr01.execute_packing_server]: task_count=1
+[INFO] [1773032407.498953761] [dsr01.execute_packing_server]: [TASK 1] item=홀스 grip_width=42.0
+[INFO] [1773032407.499129963] [dsr01.execute_packing_server]:   pick_pose=(403.853, 162.238, 294.505) rpy=(78.647, 179.995, -13.647)
+[INFO] [1773032407.499298879] [dsr01.execute_packing_server]:   place_pose=(403.795, -149.951, 294.518) rpy=(130.759, -179.998, 38.473)
+
+[INFO] [1773032407.499466747] [dsr01.execute_packing_server]:   station_place=(300.000, 0.000, 294.505)
+[INFO] [1773032407.499632904] [dsr01.execute_packing_server]:   station_pick=(300.000, 0.000, 294.505)
+
+[INFO] [1773032407.499798313] [dsr01.execute_packing_server]:   box_place=(403.795, -149.951, 294.518)
+
+[INFO] [1773032407.499964003] [dsr01.execute_packing_server]:   align_required=True
+[INFO] [1773032407.500135020] [dsr01.execute_packing_server]:     align_step 1 rx=52.11199999999998 ry=0.0 rz=0.0
+[INFO] [1773032407.500301955] [dsr01.execute_packing_server]:     align_step 2 rx=0.0 ry=-359.993 rz=0.0
+[INFO] [1773032407.500468993] [dsr01.execute_packing_server]:     align_step 3 rx=0.0 ry=0.0 rz=52.12
+[INFO] [1773032407.500631754] [dsr01.execute_packing_server]: ===== Execution Plan Debug End =====

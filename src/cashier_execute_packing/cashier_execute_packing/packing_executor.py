@@ -1,19 +1,12 @@
 from typing import List, Tuple
 
-from .config import (
-    APPROACH_OFFSET_Z,
-    GRIP_MARGIN,
-    MIN_GRIP_WIDTH,
-    ROTATION_STATION_APPROACH_POSE,
-    ROTATION_STATION_PLACE_POSE,
-    ROTATION_STATION_RETREAT_POSE,
-)
+from .config import *
 from .packing_models import (
     AlignPlan,
     BoxPlan,
     ItemState,
-    PackingExecutionPlan,
-    PackingTaskPlan,
+    PackingPlanList,
+    PackingPlan,
     PlacementState,
     Pose3D,
     StagePlan,
@@ -27,6 +20,7 @@ def compute_grip_width(item: ItemState) -> float:
     return max(MIN_GRIP_WIDTH, min(item.size.width, item.size.depth) - GRIP_MARGIN)
 
 
+
 def build_approach_pose(target_pose: Pose3D, offset_z: float = APPROACH_OFFSET_Z) -> Pose3D:
     return Pose3D(
         x=target_pose.x,
@@ -37,73 +31,41 @@ def build_approach_pose(target_pose: Pose3D, offset_z: float = APPROACH_OFFSET_Z
         yaw=target_pose.yaw,
     )
 
-
-def build_stage_plan(item: ItemState) -> StagePlan:
+def build_stage_plan(item) -> StagePlan:
     pick_pose = item.pose
+
     pick_approach_pose = build_approach_pose(pick_pose)
     pick_retreat_pose = build_approach_pose(pick_pose)
+
     station_place_pose = Pose3D(
-        x=ROTATION_STATION_PLACE_POSE.x,
-        y=ROTATION_STATION_PLACE_POSE.y,
-        z=ROTATION_STATION_PLACE_POSE.z,
-        roll=ROTATION_STATION_PLACE_POSE.roll,
-        pitch=ROTATION_STATION_PLACE_POSE.pitch,
-        yaw=ROTATION_STATION_PLACE_POSE.yaw,
+        x=ROTATION_STATION_PLACE_BASE_POSE.x,
+        y=ROTATION_STATION_PLACE_BASE_POSE.y,
+        z=pick_pose.z,
+        roll=ROTATION_STATION_PLACE_BASE_POSE.roll,
+        pitch=ROTATION_STATION_PLACE_BASE_POSE.pitch,
+        yaw=ROTATION_STATION_PLACE_BASE_POSE.yaw,
     )
-    station_approach_pose = Pose3D(
-        x=ROTATION_STATION_APPROACH_POSE.x,
-        y=ROTATION_STATION_APPROACH_POSE.y,
-        z=ROTATION_STATION_APPROACH_POSE.z,
-        roll=ROTATION_STATION_APPROACH_POSE.roll,
-        pitch=ROTATION_STATION_APPROACH_POSE.pitch,
-        yaw=ROTATION_STATION_APPROACH_POSE.yaw,
-    )
-    station_retreat_pose = Pose3D(
-        x=ROTATION_STATION_RETREAT_POSE.x,
-        y=ROTATION_STATION_RETREAT_POSE.y,
-        z=ROTATION_STATION_RETREAT_POSE.z,
-        roll=ROTATION_STATION_RETREAT_POSE.roll,
-        pitch=ROTATION_STATION_RETREAT_POSE.pitch,
-        yaw=ROTATION_STATION_RETREAT_POSE.yaw,
-    )
+
     return StagePlan(
         pick_approach_pose=pick_approach_pose,
         pick_pose=pick_pose,
         pick_retreat_pose=pick_retreat_pose,
-        station_approach_pose=station_approach_pose,
+        station_approach_pose=ROTATION_STATION_APPROACH_POSE,
         station_place_pose=station_place_pose,
-        station_retreat_pose=station_retreat_pose,
+        station_retreat_pose=ROTATION_STATION_RETREAT_POSE,
     )
 
-
-def build_box_plan(placement: PlacementState) -> BoxPlan:
+def build_box_plan(
+    placement: PlacementState,
+    station_pick_pose: Pose3D,
+) -> BoxPlan:
     box_place_pose = placement.pose
     box_approach_pose = build_approach_pose(box_place_pose)
     box_retreat_pose = build_approach_pose(box_place_pose)
-    station_pick_pose = Pose3D(
-        x=ROTATION_STATION_PLACE_POSE.x,
-        y=ROTATION_STATION_PLACE_POSE.y,
-        z=ROTATION_STATION_PLACE_POSE.z,
-        roll=ROTATION_STATION_PLACE_POSE.roll,
-        pitch=ROTATION_STATION_PLACE_POSE.pitch,
-        yaw=ROTATION_STATION_PLACE_POSE.yaw,
-    )
-    station_pick_approach_pose = Pose3D(
-        x=ROTATION_STATION_APPROACH_POSE.x,
-        y=ROTATION_STATION_APPROACH_POSE.y,
-        z=ROTATION_STATION_APPROACH_POSE.z,
-        roll=ROTATION_STATION_APPROACH_POSE.roll,
-        pitch=ROTATION_STATION_APPROACH_POSE.pitch,
-        yaw=ROTATION_STATION_APPROACH_POSE.yaw,
-    )
-    station_pick_retreat_pose = Pose3D(
-        x=ROTATION_STATION_RETREAT_POSE.x,
-        y=ROTATION_STATION_RETREAT_POSE.y,
-        z=ROTATION_STATION_RETREAT_POSE.z,
-        roll=ROTATION_STATION_RETREAT_POSE.roll,
-        pitch=ROTATION_STATION_RETREAT_POSE.pitch,
-        yaw=ROTATION_STATION_RETREAT_POSE.yaw,
-    )
+
+    station_pick_approach_pose = build_approach_pose(station_pick_pose)
+    station_pick_retreat_pose = build_approach_pose(station_pick_pose)
+
     return BoxPlan(
         station_pick_approach_pose=station_pick_approach_pose,
         station_pick_pose=station_pick_pose,
@@ -135,12 +97,18 @@ def convert_request_to_internal_models(pick_items: List, place_items: List) -> T
     return items, placements
 
 
-def build_single_task_plan(task_index: int, item: ItemState, placement: PlacementState) -> PackingTaskPlan:
+def build_single_plan(task_index: int, item, placement, grip_width: float) -> PackingPlan:
     stage_plan = build_stage_plan(item)
-    align_plan: AlignPlan = build_align_plan(item, placement)
-    box_plan = build_box_plan(placement)
-    grip_width = compute_grip_width(item)
-    return PackingTaskPlan(
+    align_plan = build_align_plan(item, placement)
+
+    final_station_pose = stage_plan.station_place_pose
+
+    box_plan = build_box_plan(
+        placement=placement,
+        station_pick_pose=final_station_pose,
+    )
+
+    return PackingPlan(
         task_index=task_index,
         item=item,
         placement=placement,
@@ -150,19 +118,18 @@ def build_single_task_plan(task_index: int, item: ItemState, placement: Placemen
         grip_width=grip_width,
     )
 
-
-def build_execution_plan_from_request(pick_items: List, place_items: List, logger=None) -> PackingExecutionPlan:
+def build_execution_plan_from_request(pick_items: List, place_items: List, logger=None) -> PackingPlanList:
     validate_request_items_and_places(pick_items=pick_items, place_items=place_items)
     items, placements = convert_request_to_internal_models(pick_items=pick_items, place_items=place_items)
-    tasks: List[PackingTaskPlan] = []
+    tasks: List[PackingPlan] = []
     for task_index, placement in enumerate(placements, start=1):
         item = items[placement.object_index]
-        tasks.append(build_single_task_plan(task_index=task_index, item=item, placement=placement))
-    return PackingExecutionPlan(tasks=tasks)
+        tasks.append(build_single_plan(task_index=task_index, item=item, placement=placement, grip_width = compute_grip_width(item)))
+    return PackingPlanList(tasks=tasks)
 
 
 def execute_plan_with_callbacks(
-    plan: PackingExecutionPlan,
+    plan: PackingPlanList,
     on_pick_and_stage_on_rotation_station,
     on_align_object_on_rotation_station,
     on_pick_and_place_to_box,
@@ -172,3 +139,14 @@ def execute_plan_with_callbacks(
         on_pick_and_stage_on_rotation_station(task, task.stage_plan)
         on_align_object_on_rotation_station(task, task.align_plan)
         on_pick_and_place_to_box(task, task.box_plan)
+
+
+def build_station_place_pose_from_item_z(item) -> Pose3D:
+    return Pose3D(
+        x=ROTATION_STATION_PLACE_BASE_POSE.x,
+        y=ROTATION_STATION_PLACE_BASE_POSE.y,
+        z=item.pose.z,
+        roll=ROTATION_STATION_PLACE_BASE_POSE.roll,
+        pitch=ROTATION_STATION_PLACE_BASE_POSE.pitch,
+        yaw=ROTATION_STATION_PLACE_BASE_POSE.yaw,
+    )
