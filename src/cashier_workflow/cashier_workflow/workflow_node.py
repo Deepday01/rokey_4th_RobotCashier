@@ -10,7 +10,6 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 
-# TODO:0
 from cashier_interfaces.action import VoiceSession, ScanItems, ExecutePacking
 from cashier_interfaces.srv import ComputePackingPlan
 from cashier_interfaces.msg import Item, Placement
@@ -145,7 +144,7 @@ class WorkflowNode(Node):
         finally:
             # MVP에서는 recovery 없이 다시 IDLE로 복귀
             time.sleep(0.5)
-            self._set_state(WorkflowState.IDLE)
+            # self._set_state(WorkflowState.IDLE)
             self.is_running = False
 
     # ------------------------------------------------------------------
@@ -266,17 +265,17 @@ class WorkflowNode(Node):
     # Feedback callbacks 진행상황을 로그로 보기 좋게 하기 위해. (필수 아님)
     # ------------------------------------------------------------------
     def _voice_feedback_callback(self, feedback_msg):
-        self.get_logger().info(
+        self.get_logger().debug(
             f"[VOICE] runtime={feedback_msg.feedback.runtime}s"
         )
 
     def _vision_feedback_callback(self, feedback_msg):
-        self.get_logger().info(
+        self.get_logger().debug(
             f"[VISION] runtime={feedback_msg.feedback.runtime}s"
         )
 
     def _execute_feedback_callback(self, feedback_msg):
-        self.get_logger().info(
+        self.get_logger().debug(
             f"[EXECUTE] progress={feedback_msg.feedback.progress}, "
             f"runtime={feedback_msg.feedback.runtime}s"
         )
