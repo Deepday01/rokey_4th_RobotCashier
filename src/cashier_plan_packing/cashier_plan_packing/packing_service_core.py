@@ -5,17 +5,14 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 import torch.nn as nn
-import os
 from cashier_interfaces.msg import Placement as PlacementMsg
 
 # =========================
 # User settings
 # =========================
-CHECKPOINT_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "checkpoint_heightmap_attention_policy_candidate_split_v2.pth"
-)
+CHECKPOINT_PATH = "/home/leeseungmin/Desktop/Doosan/rokey_ws/src/cashier_plan_packing/cashier_plan_packing/checkpoint_heightmap_attention_policy_candidate_split_v2.pth"
 BASKET_SIZE = (170, 130, 75)
+BASKET_WORLD_ORIGIN = (300.0, 400.0, 500.0)
 GRID_SIZE = 5
 MAX_OBJECTS = 8
 SUPPORT_THRESHOLD = 0.72
@@ -901,14 +898,29 @@ def objects_from_request_items(items):
 
 def placements_to_response_msgs(placements):
     response_msgs = []
+
+    bx, by, bz = BASKET_WORLD_ORIGIN
+
     for p in placements:
         msg = PlacementMsg()
         msg.object_index = int(p.base_index)
-        msg.x = float(p.position[0])
-        msg.y = float(p.position[1])
-        msg.z = float(p.position[2])
+
+        sx, sy, sz = p.size  # 회전 적용된 실제 크기
+
+        # 바구니 내부 기준 corner -> center
+        local_cx = float(p.position[0] + sx / 2.0)
+        local_cy = float(p.position[1] + sy / 2.0)
+        local_cz = float(p.position[2] + sz / 2.0)
+
+        # 바구니 상대좌표 -> 로봇/world 절대좌표
+        msg.x = bx + local_cx
+        msg.y = by - local_cy
+        msg.z = bz + local_cz
+
         msg.roll = float(p.rotation_rpy[0])
         msg.pitch = float(p.rotation_rpy[1])
         msg.yaw = float(p.rotation_rpy[2])
+
         response_msgs.append(msg)
+
     return response_msgs
