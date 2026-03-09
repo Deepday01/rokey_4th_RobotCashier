@@ -4,8 +4,8 @@ import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
 
-from robot_msgs.action import ExecutePacking
-from robot_msgs.msg import Item, Placement
+from cashier_interfaces.action import ExecutePacking
+from cashier_interfaces.msg import Item, Placement
 
 
 class ExecutePackingClient(Node):

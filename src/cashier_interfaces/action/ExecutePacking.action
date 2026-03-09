@@ -1,5 +1,5 @@
-robot_msgs/Item[] pick_items
-robot_msgs/Placement[] place_items
+Item[] pick_items
+Placement[] place_items
 ---
 bool success
 ---

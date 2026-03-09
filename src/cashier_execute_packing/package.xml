@@ -10,7 +10,7 @@
   <buildtool_depend>ament_python</buildtool_depend>
 
   <depend>rclpy</depend>
-  <depend>robot_msgs</depend>
+  <depend>cashier_interfaces</depend>
 
   <export>
     <build_type>ament_python</build_type>

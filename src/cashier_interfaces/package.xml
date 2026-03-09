@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>robot_msgs</name>
+  <name>cashier_interfaces</name>
   <version>0.0.0</version>
   <description>Custom messages and actions for robot control</description>
 

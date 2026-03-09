@@ -7,7 +7,7 @@ import rclpy
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.node import Node
 
-from robot_msgs.action import ExecutePacking
+from cashier_interfaces.action import ExecutePacking
 
 from cashier_execute_packing.config import (
     ACC,
