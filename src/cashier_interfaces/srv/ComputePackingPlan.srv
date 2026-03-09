@@ -1,0 +1,4 @@
+cashier_interfaces/ItemSpec[] items
+---
+bool success
+cashier_interfaces/Placement[] placements
