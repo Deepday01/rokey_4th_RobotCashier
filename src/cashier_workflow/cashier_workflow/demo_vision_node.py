@@ -51,8 +51,8 @@ class DemoVisionNode(Node):
 
         result.success = True
         result.items_scan = [
-            self.make_item("item_001", "milk", 0.07, 0.07, 0.20, 2),
-            self.make_item("item_002", "snack_box", 0.15, 0.10, 0.05, 3),
+            self.make_item("item_001", "milk", 1, 2, 3, 2),
+            self.make_item("item_002", "snack_box", 1, 2, 3, 3),
         ]
 
         self.get_logger().info(f"[DEMO VISION] success, scanned={len(result.items_scan)}")

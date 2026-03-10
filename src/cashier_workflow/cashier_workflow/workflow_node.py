@@ -69,6 +69,9 @@ class WorkflowNode(Node):
 
         self.get_logger().info("workflow_node ready. state=IDLE")
 
+    def _item_names(self, items):
+      return [item.name for item in items]
+
     # ------------------------------------------------------------------
     # Main tick
     # ------------------------------------------------------------------
@@ -200,6 +203,11 @@ class WorkflowNode(Node):
         result_future = goal_handle.get_result_async()
         result = self._wait_future(result_future).result
 
+        # 제품확인용
+        self.get_logger().info(
+        f"[VOICE RES] success={result.success}, command={result.command}, items_out={self._item_names(result.items_out)}"
+        )   
+
         return result.success, list(result.items_out)
 
     def call_vision(self) -> Tuple[bool, List[Item]]:
@@ -220,6 +228,10 @@ class WorkflowNode(Node):
 
         result_future = goal_handle.get_result_async()
         result = self._wait_future(result_future).result
+        
+        self.get_logger().info(
+        f"[VISION RES] success={result.success}, items_scan={self._item_names(result.items_scan)}"
+        )   
 
         return result.success, list(result.items_scan)
 
@@ -232,6 +244,10 @@ class WorkflowNode(Node):
 
         future = self.plan_client.call_async(request)
         response = self._wait_future(future, timeout_sec=30.0)
+
+        self.get_logger().info(
+            f"[PLAN RES] success={response.success}, placements={len(response.placements)}"
+        )    
 
         return response.success, list(response.placements)
 

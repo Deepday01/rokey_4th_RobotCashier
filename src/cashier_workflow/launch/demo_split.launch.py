@@ -16,18 +16,18 @@ def generate_launch_description():
             name="demo_vision_node",
             output="screen",
         ),
-        Node(
-            package="cashier_workflow",
-            executable="demo_plan_packing_node",
-            name="demo_plan_packing_node",
-            output="screen",
-        ),
         # Node(
         #     package="cashier_workflow",
-        #     executable="demo_execute_packing_node",
-        #     name="demo_execute_packing_node",
+        #     executable="demo_plan_packing_node",
+        #     name="demo_plan_packing_node",
         #     output="screen",
         # ),
+        Node(
+            package="cashier_workflow",
+            executable="demo_execute_packing_node",
+            name="demo_execute_packing_node",
+            output="screen",
+        ),
         Node(
             package="cashier_workflow",
             executable="workflow_node",
