@@ -1,12 +1,5 @@
 {
-  "caramel_A01": {
-    "name": "caramel",
-    "width": 74.0,
-    "height": 48.0,
-    "depth": 23.0,
-    "durability": 1
-  },
-  "caramel_A02": {
+  "caramel": {
     "name": "caramel",
     "width": 74.0,
     "height": 48.0,
@@ -18,7 +11,7 @@
     "width": 83.0,
     "height": 53.0,
     "depth": 41.0,
-    "durability": 3
+    "durability": 4
   },
   "candy": {
     "name": "candy",
@@ -33,5 +26,27 @@
     "height": 52.0,
     "depth": 16.0,
     "durability": 5
+  },
+  "cream": {
+    "name": "cream",
+    "width": 127.0,
+    "height": 36.0,
+    "depth": 24.0,
+    "durability": 3
+  },
+  "eclipse_yel": {
+    "name": "eclipse_yel",
+    "width": 80.0,
+    "height": 45.0,
+    "depth": 25.0,
+    "durability": 5
+  },
+  "eclipse_red": {
+    "name": "eclipse_red",
+    "width": 80.0,
+    "height": 45.0,
+    "depth": 25.0,
+    "durability": 5
   }
+  
 }
