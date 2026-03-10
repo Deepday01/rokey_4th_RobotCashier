@@ -1,0 +1,6 @@
+# Request
+Item[] items   # 내용물:items_final[]
+---
+# Response
+bool success
+Placement[] placements  # 내용물:packing_plan[]
