@@ -211,7 +211,7 @@ class WorkflowNode(Node):
         return result.success, list(result.items_out)
 
     def call_vision(self) -> Tuple[bool, List[Item]]:
-        if not self.vision_client.wait_for_server(timeout_sec=5.0):
+        if not self.vision_client.wait_for_server(timeout_sec=200.0):
             raise RuntimeError("vision action server not available: /vision/scan_items")
 
         goal = ScanItems.Goal()

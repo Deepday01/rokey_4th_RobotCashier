@@ -245,6 +245,7 @@ class WorkflowNode(Node):
             raise RuntimeError("vision goal rejected")
 
         result_future = goal_handle.get_result_async()
+        self._dbg("[VISION] waiting result future...")
         result = self._wait_future(result_future).result
         
         # 디버깅모드
