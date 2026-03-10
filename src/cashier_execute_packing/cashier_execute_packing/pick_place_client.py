@@ -39,9 +39,9 @@ class ExecutePackingClient(Node):
         item1 = Item()
         item1.item_id = "item_001"
         item1.name = "홀스"
-        item1.width = 74.0
-        item1.depth = 44.0
-        item1.height = 13.0
+        item1.width = 74
+        item1.depth = 44
+        item1.height = 13
         item1.durability = 4
         item1.x = 300.853
         item1.y = 130.238
@@ -74,9 +74,9 @@ class ExecutePackingClient(Node):
         # item2 = Item()
         # item2.item_id = "item_002"
         # item2.name = "홀스"
-        # item2.width = 74.0
-        # item2.depth = 44.0
-        # item2.height = 13.0
+        # item2.width = 74
+        # item2.depth = 44
+        # item2.height = 13
         # item2.durability = 4
         # item2.x = 403.853
         # item2.y = 162.238

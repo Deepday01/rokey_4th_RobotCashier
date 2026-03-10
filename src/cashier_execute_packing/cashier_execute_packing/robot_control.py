@@ -102,13 +102,13 @@ class RobotController:
         mwait()
         
 
-    def close_gripper(self, width_mm: float | None = None) -> None:
+    def close_gripper(self, width_mm: int | None = None) -> None:
         from DSR_ROBOT2 import mwait
 
         if width_mm is None:
             gripper.close_gripper()
         else:
-            gripper.move_gripper(width_mm)
+            gripper.move_gripper(width_mm *10) # 기본 단위가 1/10 mm 이기에 10을 곱해줌
         started = time.time()
         while gripper.get_status()[0]:
             if time.time() - started > GRIPPER_TIMEOUT_SEC:
@@ -118,7 +118,7 @@ class RobotController:
 
     # def rotate_object(self, object_pose, rotate_direction):
     def rotate_object(self):
-        from DSR_ROBOT2 import mwait, get_current_posx
+        from DSR_ROBOT2 import get_current_posx
         # # TODO : 여기서부터
         # if rotate_direction == 'x_axis':
         #     self.move_to_pose()
@@ -127,24 +127,32 @@ class RobotController:
         # if rotate_direction == 'z_axis':
         #     pass
 
-        # 45도 잡기 시작
-        # self.move_ready()
-        current, _ = get_current_posx()
-        self.move_to_pose(Pose3D(283.79, -378.888, current[2], current[3], current[4], current[5])) # 안전을 위한 정거장
-        self.open_gripper()
-        self.move_to_pose(Pose3D(283.79, -578.888, 143.574, 178.735, 137.239, 89.514))
-        self.close_gripper()
-        self.safe_rise()
+        # # 45도 잡기 시작
+        # current, _ = get_current_posx()
+        # self.open_gripper()
+        # self.move_to_pose(Pose3D(91.712, -582.737, 384.288, 177.012, 135.921, 88.244)) # y축 회전 45도 잡기전 경유 지점 
+        # self.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 10, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기
+        # # 10
+        # self.close_gripper(width_mm = 40+15) # 기존 + 부착된 그리퍼 너비길이가 합쳐서 15mm 이라 보정
+        # # self.close_gripper() 
+        # self.safe_rise() # 안전을 위해 추가
 
-        # # 135도 놓기 시작
-        # self.move_to_pose(Pose3D(367.329, 3.665, 422.806, 53.462, 179.983, 53.852))
+
+        # # # 135도 놓기 시작
+        # self.move_to_pose(Pose3D(-152.673, -579.061, 207.891, 179.251, -132.47, 87.477)) # y축 회전 135도 놓기전 경우 지점
+        # self.move_to_pose(Pose3D(-152.678, -579.069, 7.86 + 37.5, 179.252, -132.471, 87.476)) # y축 회전 135도 놓기
+        # # 37.5
+
         # self.open_gripper()
         # self.safe_rise()
 
+        # current, _ = get_current_posx()
+        # self.move_to_pose(Pose3D(286.7, 117, 546-60 +100,current[3],current[4], 41)) 
+        # tcp 끝단에서 추가 그리퍼 길이 60 // 지금 테스트에서는 z값만 추가하면됨
 
+        self.open_gripper()
+        self.close_gripper()
 
-
- 
 
 
 class ExecutePackingServer(Node):
@@ -379,8 +387,8 @@ class ExecutePackingServer(Node):
 
             # 디버깅 종료
 
-
-            self.robot.move_ready()
+            # relase 코드
+            # self.robot.move_ready()
             execute_plan_with_callbacks(
                 planList=PackingPlanList,
                 on_pick_and_stage_on_rotation_station=self.execute_pick_and_stage_on_rotation_station,

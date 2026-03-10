@@ -79,26 +79,37 @@ class Pose:
 # 회전 스테이션 위치
 # ================================
 
+
+
 # 회전 스테이션 접근 위치
 # 실제 place 위치보다 위쪽에 위치
 ROTATION_STATION_APPROACH_POSE = Pose3D(
-    x=300.0,
-    y=0.0,
-    z=200.0 + APPROACH_OFFSET_Z,
-    roll=78.647,
-    pitch=179.995,
-    yaw=-13.647,
+    x=91.712,
+    y=-582.737,
+    z=384.288,
+    roll=177.012,
+    pitch=135.921,
+    yaw=88.244,
 )
+ROTATION_STATION_APPROACH_POSE = Pose3D(
+    x=91.712,
+    y=-582.737,
+    z=384.288,
+    roll=177.012,
+    pitch=135.921,
+    yaw=88.244,
+)
+
 
 
 # 회전 스테이션 위에 물체를 내려놓는 실제 위치
 ROTATION_STATION_PLACE_BASE_POSE = Pose3D(
-    x=300.0,
-    y=0.0,
-    z=200.0, # 런타임에서 pick z값이 재할당됨
-    roll=78.647,
-    pitch=179.995,
-    yaw=-13.647,
+    x=91.723,
+    y=-582.756,
+    z=182.977, # 런타임에서 pick z값이 재할당됨
+    roll=176.985,
+    pitch=135.902,
+    yaw=88.212,
 )
 
 # 회전 스테이션에서 물체를 내려놓은 후
