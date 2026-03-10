@@ -21,6 +21,7 @@ from voice_processing.stt import STT
 import warnings
 from rclpy.action import ActionServer
 from cashier_interfaces.action import VoiceSession
+from voice_processing.tts_helper import speak
 import re
 
 ############ Package Path & Environment Setting ############
@@ -65,12 +66,16 @@ class GetKeyword(Node):
             - 박하사탕 : halls
             - 호올스 : halls
             - 곤충 : insect
-            - 곤충 블록 : insect
-            - 벌레 장난감 : insect
+            - 곤충블록 : insect
+            - 벌레장난감 : insect
             - 케러멜 : caramel
             - 사탕 : candy
-            - 공룡 : dino
-            - 공룡 장난감 : dino
+            - 연고 : cream
+            - 크림 : cream
+            - 빨간이클립스 : eclipse_red
+            - 빨간박하사탕 : eclipse_red
+            - 초록이클립스 : eclipse_green
+            - 초록박하사탕 : eclipse_green
 
             <명령 종류>
             - scan : 테이블 위 상품 전체를 스캔/인식 시작하는 명령
@@ -183,20 +188,6 @@ class GetKeyword(Node):
 
         self.wakeup_word = WakeupWord(mic_config.buffer_size)
 
-    # def extract_keyword(self, output_message):
-    #     response = self.lang_chain.invoke({"user_input": output_message})
-    #     result = response.content
-
-    #     object, target = result.strip().split("/")
-
-    #     object = object.split()
-    #     target = target.split()
-
-    #     print(f"llm's response: {object}")
-    #     print(f"object: {object}")
-    #     print(f"target: {target}")
-    #     return object
-
     def extract_keyword(self, output_message):
         response = self.lang_chain.invoke({"user_input": output_message})
         result = [part.strip() for part in response.content.strip().split("/")]
@@ -225,7 +216,9 @@ class GetKeyword(Node):
             "곤충", "곤충 블록", "곤충블록", "벌레 장난감", "벌레",
             "케러멜", "카라멜", "캐러멜",
             "사탕", "캔디",
-            "공룡", "공룡 장난감", "공룡장난감",
+            "연고", "크림",
+            "빨간 이클립스", "빨간 박하사탕", "빨간이클립스", "빨간박하사탕",
+            "초록 이클립스", "초록 박하사탕", "초록이클립스", "초록박하사탕",
         }
 
         stop_words = {
@@ -273,14 +266,6 @@ class GetKeyword(Node):
 
         return new_items
 
-    # def parse_cancel_count(self, counts):
-    #     if not counts:
-    #         return 1
-    #     try:
-    #         return int(counts[0])
-    #     except (ValueError, TypeError):
-    #         return None
-
     def parse_cancel_counts(self, counts, item_len):
         parsed_counts = []
 
@@ -301,129 +286,12 @@ class GetKeyword(Node):
 
         return parsed_counts
 
-    # def get_keyword(self, request, response):  # 요청과 응답 객체를 받아야 함
-    #     try:
-    #         print("open stream")
-    #         self.mic_controller.open_stream()
-    #         self.wakeup_word.set_stream(self.mic_controller.stream)
-    #     except OSError:
-    #         self.get_logger().error("Error: Failed to open audio stream")
-    #         self.get_logger().error("please check your device index")
-    #         return None
-
-    #     while not self.wakeup_word.is_wakeup():
-    #         pass
-
-    #     # STT --> Keword Extract --> Embedding
-    #     output_message = self.stt.speech2text()
-    #     keyword = self.extract_keyword(output_message)
-
-    #     self.get_logger().warn(f"Detected tools: {keyword}")
-
-    #     # 응답 객체 설정
-    #     response.success = True
-    #     response.message = " ".join(keyword)  # 감지된 키워드를 응답 메시지로 반환
-    #     return response
-    
-    # def execute_callback(self, goal_handle):
-    #     mode = goal_handle.request.mode
-
-    #     feedback_msg = VoiceSession.Feedback()
-    #     result = VoiceSession.Result()
-
-    #     if mode != "WAKEUP":
-    #         self.get_logger().warn(f"Unsupported mode: {mode}")
-    #         result.success = False
-    #         result.command = 0
-    #         result.items_out = []
-    #         goal_handle.abort()
-    #         return result
-
-    #     try:
-    #         print("open stream")
-    #         self.mic_controller.open_stream()
-    #         self.wakeup_word.set_stream(self.mic_controller.stream)
-    #     except OSError:
-    #         self.get_logger().error("Error: Failed to open audio stream")
-    #         self.get_logger().error("please check your device index")
-    #         result.success = False
-    #         result.command = 0
-    #         result.items_out = []
-    #         goal_handle.abort()
-    #         return result
-
-    #     runtime = 0
-    #     while not self.wakeup_word.is_wakeup():
-    #         feedback_msg.runtime = runtime
-    #         goal_handle.publish_feedback(feedback_msg)
-    #         runtime += 1
-
-    #     output_message = self.stt.speech2text()
-    #     self.get_logger().warn(f"recognized text: {output_message}")
-
-    #     parsed = self.extract_keyword(output_message)
-        
-    #     if parsed is None:
-    #         self.get_logger().warn("Failed to parse command from LLM output")
-    #         result.success = False
-    #         result.command = 0
-    #         result.items_out = []
-    #         goal_handle.abort()
-    #         return result
-
-    #     items, counts, command = parsed
-
-    #     self.get_logger().warn(f"parsed items: {items}")
-    #     self.get_logger().warn(f"parsed counts: {counts}")
-    #     self.get_logger().warn(f"parsed command: {command}")
-
-    #     # 임시 command 매핑
-    #     if command == "scan":
-    #         result.command = 1
-    #     elif command == "cancel":
-    #         result.command = 2
-    #     elif command == "pack":
-    #         result.command = 3
-    #     else: # 아무런 명령이 없는 경우
-    #         result.command = 0
-
-    #     result.success = True
-    #     result.items_out = []
-
-    #     goal_handle.succeed()
-    #     return result
-
-    ### 포장 여부 물어보기 헬퍼 함수 ###
-    # def finish_with_pack_check(self, goal_handle, result, items_in):
-    #     print("포장을 시작할까요? 포장을 원하시면 포장해줘 라고 말씀해주세요.")
-
-    #     output_message = self.stt.speech2text()
-    #     self.get_logger().warn(f"recognized text(pack check): {output_message}")
-
-    #     parsed = self.extract_keyword(output_message)
-
-    #     if parsed is not None:
-    #         _, _, command = parsed
-    #         if command == "pack":
-    #             print("포장을 시작합니다.")
-    #             result.command = CMD_PACK
-    #         else:
-    #             print("포장 명령이 없어 수정을 종료합니다.")
-    #             result.command = CMD_UNKNOWN
-    #     else:
-    #         print("포장 명령 해석에 실패하여 수정을 종료합니다.")
-    #         result.command = CMD_UNKNOWN
-
-    #     result.success = True
-    #     result.items_out = items_in
-    #     goal_handle.succeed()
-    #     return result
-
     def finish_with_pack_check(self, goal_handle, result, items_in):
         max_retry = 3
 
         for attempt in range(max_retry):
             print("포장을 시작할까요? 포장을 원하시면 '포장해줘'라고 말씀해주세요.")
+            speak("포장을 시작할까요? 포장을 원하시면 '포장해줘'라고 말씀해주세요.")
 
             output_message = self.stt.speech2text()
             self.get_logger().warn(f"recognized text(pack check): {output_message}")
@@ -432,12 +300,14 @@ class GetKeyword(Node):
 
             if parsed is None:
                 print("명령을 이해하지 못했습니다. 다시 말씀해주세요.")
+                speak("명령을 이해하지 못했습니다. 다시 말씀해주세요.")
                 continue
 
             _, _, command = parsed
 
             if command == "pack":
                 print("포장을 시작합니다.")
+                speak("포장을 시작합니다. 잠시만 기다려주세요.")
                 result.success = True
                 result.command = CMD_PACK
                 result.items_out = items_in
@@ -446,6 +316,7 @@ class GetKeyword(Node):
 
             if command == "no":
                 print("포장을 진행하지 않고 종료합니다.")
+                speak("포장을 진행하지 않고 종료합니다.")
                 result.success = True
                 result.command = CMD_UNKNOWN
                 result.items_out = items_in
@@ -453,8 +324,10 @@ class GetKeyword(Node):
                 return result
 
             print("포장 여부를 다시 말씀해주세요.")
+            speak("포장 여부를 다시 말씀해주세요.")
 
         print("포장 명령을 확인하지 못해 수정을 종료합니다.")
+        speak("포장 명령을 확인하지 못해 수정을 종료합니다.")
         result.success = True
         result.command = CMD_UNKNOWN
         result.items_out = items_in
@@ -492,6 +365,7 @@ class GetKeyword(Node):
                 goal_handle.publish_feedback(feedback_msg)
                 runtime += 1
             print("안녕하세요. 고객님 무엇을 도와드릴까요?")
+            speak("안녕하세요. 고객님 무엇을 도와드릴까요?")
             while True:
                 # STT로 고객이 원하는 음성을 인식
                 output_message = self.stt.speech2text()
@@ -508,21 +382,21 @@ class GetKeyword(Node):
                     return result
 
                 items, counts, command = parsed
-
-                #self.get_logger().warn(f"parsed items: {items}")
-                #self.get_logger().warn(f"parsed counts: {counts}")
                 self.get_logger().warn(f"parsed command: {command}")
 
 
                 if command == "scan":
                     print("상품을 스캔하겠습니다. 잠시만 기다려주세요.")
+                    speak("상품을 스캔하겠습니다. 잠시만 기다려주세요.")
                     result.command = CMD_SCAN
                     break  # scan 명령이 들어오면 WAKEUP 루프 탈출
                 elif command == "pack" or command == "cancel" or command == "yes" or command == "no":
                     print("상품을 먼저 스캔해주세요.")
+                    speak("상품을 먼저 스캔해주세요.")
                     continue  # pack 명령이 들어오면 안내 메시지 출력 후 계속 WAKEUP 루프 유지
                 else:
                     print("알 수 없는 명령입니다. 다시 시도해주세요.")
+                    speak("알 수 없는 명령입니다. 다시 시도해주세요.")
                     continue  # 명령이 불명확하면 안내 메시지 출력 후 계속 WAKEUP 루프 유지
 
             # 일단 1차 WAKEUP 모드에서는 스캔 명령만 필요, 실제 상품 리스트는 빈 리스트로 반환
@@ -537,6 +411,7 @@ class GetKeyword(Node):
         # -------------------------------
         elif mode == "EDIT":
             print("상품 스캔이 완료되었습니다. 수정할 상품이 있으신가요?")
+            speak("상품 스캔이 완료되었습니다. 수정할 상품이 있으신가요?")
             items_in = list(goal_handle.request.items_in)
 
             state = "ASK_EDIT"
@@ -555,6 +430,7 @@ class GetKeyword(Node):
                 parsed = self.extract_keyword(output_message)
                 if parsed is None:
                     self.get_logger().warn("명령 해석에 실패했습니다. 다시 말씀해주세요.")
+                    speak("명령 해석에 실패했습니다. 다시 말씀해주세요.")
                     continue
 
                 items, counts, command = parsed
@@ -564,6 +440,10 @@ class GetKeyword(Node):
 
                 if command == "cancel" and unknown_items:
                     print(
+                        f"등록되지 않은 상품이 포함되어 있습니다: {', '.join(unknown_items)}. "
+                        "다시 말씀해주세요."
+                    )
+                    speak(
                         f"등록되지 않은 상품이 포함되어 있습니다: {', '.join(unknown_items)}. "
                         "다시 말씀해주세요."
                     )
@@ -578,17 +458,14 @@ class GetKeyword(Node):
                 if state == "ASK_EDIT":
                     if command == "yes":
                         print("취소할 상품명과 수량을 말씀해주세요.")
+                        speak("취소할 상품명과 수량을 말씀해주세요.")
                         state = "ASK_CANCEL_DETAIL"
                         continue
                     
                     elif command == "no":
                         print("수정을 종료합니다.")
+                        speak("수정을 종료합니다.")
                         # pack 관련 적용
-                        # result.success = True
-                        # result.command = CMD_UNKNOWN
-                        # result.items_out = items_in
-                        # goal_handle.succeed()
-                        # return result
                         return self.finish_with_pack_check(goal_handle, result, items_in)
 
                     elif command == "cancel":
@@ -597,23 +474,21 @@ class GetKeyword(Node):
 
                     else:
                         print("수정할 상품이 있으시면 네, 없으시면 아니요, 또는 바로 취소할 상품을 말씀해주세요.")
+                        speak("수정할 상품이 있으시면 네, 없으시면 아니요, 또는 바로 취소할 상품을 말씀해주세요.")
                         continue
 
                 # 2) 한 번 수정 성공 후, 추가 수정 여부를 묻는 상태
                 if state == "ASK_MORE_EDIT":
                     if command == "yes":
                         print("취소할 상품명과 수량을 말씀해주세요.")
+                        speak("취소할 상품명과 수량을 말씀해주세요.")
                         state = "ASK_CANCEL_DETAIL"
                         continue
                     
                     elif command == "no":
                         # pack 관련 적용
                         print("수정을 종료합니다.")
-                        # result.success = True
-                        # result.command = CMD_UNKNOWN
-                        # result.items_out = items_in
-                        # goal_handle.succeed()
-                        # return result
+                        speak("수정을 종료합니다.")
                         return self.finish_with_pack_check(goal_handle, result, items_in)
 
                     elif command == "cancel":
@@ -622,6 +497,7 @@ class GetKeyword(Node):
 
                     else:
                         print("추가 수정이 있으시면 네, 없으시면 아니요, 또는 바로 취소할 상품을 말씀해주세요.")
+                        speak("추가 수정이 있으시면 네, 없으시면 아니요, 또는 바로 취소할 상품을 말씀해주세요.")
                         continue
 
                 # 3) 취소할 상품명/수량을 받는 상태
@@ -629,54 +505,29 @@ class GetKeyword(Node):
                     if command == "no":
                         # pack 관련 적용
                         print("수정을 종료합니다.")
-                        # result.success = True
-                        # result.command = CMD_UNKNOWN
-                        # result.items_out = items_in
-                        # goal_handle.succeed()
-                        # return result
+                        speak("수정을 종료합니다.")
                         return self.finish_with_pack_check(goal_handle, result, items_in)
 
                     elif command == "yes":
                         print("취소할 상품명과 수량을 다시 말씀해주세요.")
+                        speak("취소할 상품명과 수량을 다시 말씀해주세요.")
                         continue
 
                     if command != "cancel":
                         print("취소할 상품명과 수량을 다시 말씀해주세요.")
+                        speak("취소할 상품명과 수량을 다시 말씀해주세요.")
                         continue
 
                     if not items:
                         print("취소할 상품명이 없습니다. 다시 말씀해주세요.")
+                        speak("취소할 상품명이 없습니다. 다시 말씀해주세요.")
                         continue
-                    
-                    ##### 단일 상품 취소 버전 #####
-                    # target_name = items[0]
-                    # cancel_count = self.parse_cancel_count(counts)
-
-                    # # 프롬프트에서 알아서 해결해주겠지만 일단 확실하게 넣음
-                    # if cancel_count is None or cancel_count < 1:
-                    #     print("취소 수량을 이해하지 못했습니다. 다시 말씀해주세요.")
-                    #     continue
-
-                    # available_count = self.count_item_by_name(items_in, target_name)
-
-                    # if available_count == 0:
-                    #     print(f"현재 스캔된 상품 목록에 {target_name} 이(가) 없습니다. 다시 말씀해주세요.")
-                    #     continue
-
-                    # if cancel_count > available_count:
-                    #     print(
-                    #         f"현재 스캔된 {target_name}은(는) {available_count}개입니다. "
-                    #         "취소할 상품 개수를 다시 말해주세요."
-                    #     )
-                    #     continue
-
-                    # updated_items = self.remove_items_by_name(items_in, target_name, cancel_count)
-                    ####
 
                     cancel_counts = self.parse_cancel_counts(counts, len(items))
 
                     if cancel_counts is None:
                         print("취소 수량을 이해하지 못했습니다. 다시 말씀해주세요.")
+                        speak("취소 수량을 이해하지 못했습니다. 다시 말씀해주세요.")
                         continue
 
                     # 1) 먼저 전부 취소 가능한지 검사
@@ -685,10 +536,15 @@ class GetKeyword(Node):
 
                         if available_count == 0:
                             print(f"현재 스캔된 상품 목록에 {target_name} 이(가) 없습니다. 다시 말씀해주세요.")
+                            speak(f"현재 스캔된 상품 목록에 {target_name} 이(가) 없습니다. 다시 말씀해주세요.")
                             break
 
                         if cancel_count > available_count:
                             print(
+                                f"현재 스캔된 {target_name}은(는) {available_count}개입니다. "
+                                "취소할 상품 개수를 다시 말해주세요."
+                            )
+                            speak(
                                 f"현재 스캔된 {target_name}은(는) {available_count}개입니다. "
                                 "취소할 상품 개수를 다시 말해주세요."
                             )
@@ -704,6 +560,7 @@ class GetKeyword(Node):
                             [f"{name} {count}개" for name, count in zip(items, cancel_counts)]
                         )
                         print(f"{removed_log} 취소했습니다.")
+                        speak(f"{removed_log} 취소했습니다.")
 
                         items_in = updated_items
 
@@ -715,6 +572,7 @@ class GetKeyword(Node):
 
                         if len(items_in) == 0:
                             print("모든 상품이 취소되었습니다. 수정을 종료합니다.")
+                            speak("모든 상품이 취소되었습니다. 수정을 종료합니다.")
                             # pack 관련 적용
                             result.success = True
                             result.command = CMD_UNKNOWN
@@ -723,40 +581,12 @@ class GetKeyword(Node):
                             return result
 
                         print("추가로 수정할 상품이 있으신가요?")
+                        speak("추가로 수정할 상품이 있으신가요?")
                         state = "ASK_MORE_EDIT"
                         continue
 
                     # break로 빠진 경우 다시 입력 받기
                     continue
-                    
-
-
-                    ##### 단일 상품 취소 버전 #####
-                    # print(f"{target_name} {cancel_count}개 취소했습니다.")
-
-                    # # 최신 상품 리스트로 갱신
-                    # items_in = updated_items
-
-                    # # 수정 결과 로그 확인용
-                    # self.get_logger().info(f"updated item count: {len(items_in)}")
-                    # for i, item in enumerate(items_in):
-                    #     self.get_logger().info(
-                    #         f"[UPDATED {i}] item_id={item.item_id}, name={item.name}"
-                    #     )
-
-                    # if len(items_in) == 0:
-                    #     print("모든 상품이 취소되었습니다. 수정을 종료합니다.")
-                    #     # pack 관련 적용
-                    #     result.success = True
-                    #     result.command = CMD_UNKNOWN
-                    #     result.items_out = items_in
-                    #     goal_handle.succeed()
-                    #     return result
-
-                    # # 추가 수정 여부 질문으로 이동
-                    # print("추가로 수정할 상품이 있으신가요?")
-                    # state = "ASK_MORE_EDIT"
-                    # continue
 
         # -------------------------------
         # 3. 지원하지 않는 모드

@@ -17,7 +17,9 @@ class DummyVoiceClient(Node):
             2: "insect",
             3: "caramel",
             4: "candy",
-            5: "dino",
+            5: "cream",
+            6: "eclipse_red",
+            7: "eclipse_green",
         }
 
         self.pending_edit = False
@@ -28,9 +30,9 @@ class DummyVoiceClient(Node):
         msg.name = item_name
 
         # 더미값
-        msg.width = 0.0
-        msg.depth = 0.0
-        msg.height = 0.0
+        msg.width = 0
+        msg.depth = 0
+        msg.height = 0
         msg.durability = 0
         msg.x = 0.0
         msg.y = 0.0
@@ -48,7 +50,9 @@ class DummyVoiceClient(Node):
         print("2: insect")
         print("3: caramel")
         print("4: candy")
-        print("5: dino")
+        print("5: cream")
+        print("6: eclipse_red")
+        print("7: eclipse_green")
         print("0: 입력 종료 후 EDIT goal 전송\n")
 
         while True:
