@@ -28,7 +28,7 @@ READY_J = [0, 0, 90, 0, 90, 0]
 # Pick / Place 계산 파라미터
 # ================================
 
-APPROACH_OFFSET_Z = 0.0   
+APPROACH_OFFSET_Z = 100.0  
 # 목표 위치에서 위쪽으로 얼마나 떨어진 위치에서 접근할지
 # ex) pick 전에 위에서 접근
 
@@ -84,10 +84,10 @@ class Pose:
 ROTATION_STATION_APPROACH_POSE = Pose3D(
     x=300.0,
     y=0.0,
-    z=200.0,
-    roll=180.0,
-    pitch=0.0,
-    yaw=180.0,
+    z=200.0 + APPROACH_OFFSET_Z,
+    roll=78.647,
+    pitch=179.995,
+    yaw=-13.647,
 )
 
 
@@ -95,19 +95,19 @@ ROTATION_STATION_APPROACH_POSE = Pose3D(
 ROTATION_STATION_PLACE_BASE_POSE = Pose3D(
     x=300.0,
     y=0.0,
-    z=200.0, # 런타임에서 pick z 할당됨 
-    roll=180.0,
-    pitch=0.0,
-    yaw=180.0,
+    z=200.0, # 런타임에서 pick z값이 재할당됨
+    roll=78.647,
+    pitch=179.995,
+    yaw=-13.647,
 )
 
 # 회전 스테이션에서 물체를 내려놓은 후
 # 로봇이 안전하게 빠져나오는 위치
 ROTATION_STATION_RETREAT_POSE = Pose3D(
-    x=400.0,
+    x=300.0,
     y=0.0,
-    z=250.0,
-    roll=180.0,
-    pitch=0.0,
-    yaw=180.0,
+    z=200.0 + APPROACH_OFFSET_Z, 
+    roll=78.647,
+    pitch=179.995,
+    yaw=-13.647,
 )

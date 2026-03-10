@@ -1,17 +1,35 @@
+===== Execution Plan Debug =====
+[INFO] [1773035002.274353381] [dsr01.execute_packing_server]: task_count=1
+[INFO] [1773035002.274516343] [dsr01.execute_packing_server]: [TASK 1] item=홀스 grip_width=42.0
+[INFO] [1773035002.274686448] [dsr01.execute_packing_server]:   pick_pose=(403.853, 162.238, 294.505) rpy=(78.647, 179.995, -13.647)
+[INFO] [1773035002.274851679] [dsr01.execute_packing_server]:   place_pose=(403.795, -149.951, 294.518) rpy=(130.759, -179.998, 38.473)
+[INFO] [1773035002.275011377] [dsr01.execute_packing_server]:   station_place=(300.000, 0.000, 294.505)
+[INFO] [1773035002.275169281] [dsr01.execute_packing_server]:   station_pick=(300.000, 0.000, 294.505)
+[INFO] [1773035002.275328323] [dsr01.execute_packing_server]:   box_place=(403.795, -149.951, 294.518)
+[INFO] [1773035002.275486301] [dsr01.execute_packing_server]:   align_required=True
+[INFO] [1773035002.275649445] [dsr01.execute_packing_server]:     align_step 1 rx=52.11199999999998 ry=0.0 rz=0.0
+[INFO] [1773035002.275818049] [dsr01.execute_packing_server]:     align_step 2 rx=0.0 ry=-359.993 rz=0.0
+[INFO] [1773035002.275979261] [dsr01.execute_packing_server]:     align_step 3 rx=0.0 ry=0.0 rz=52.12
+[INFO] [1773035002.276132267] [dsr01.execute_packing_server]: ===== Execution Plan Debug 
 
-[INFO] [1773032407.498424747] [dsr01.execute_packing_server]: ===== Execution Plan Debug =====
-[INFO] [1773032407.498756825] [dsr01.execute_packing_server]: task_count=1
-[INFO] [1773032407.498953761] [dsr01.execute_packing_server]: [TASK 1] item=홀스 grip_width=42.0
-[INFO] [1773032407.499129963] [dsr01.execute_packing_server]:   pick_pose=(403.853, 162.238, 294.505) rpy=(78.647, 179.995, -13.647)
-[INFO] [1773032407.499298879] [dsr01.execute_packing_server]:   place_pose=(403.795, -149.951, 294.518) rpy=(130.759, -179.998, 38.473)
 
-[INFO] [1773032407.499466747] [dsr01.execute_packing_server]:   station_place=(300.000, 0.000, 294.505)
-[INFO] [1773032407.499632904] [dsr01.execute_packing_server]:   station_pick=(300.000, 0.000, 294.505)
 
-[INFO] [1773032407.499798313] [dsr01.execute_packing_server]:   box_place=(403.795, -149.951, 294.518)
 
-[INFO] [1773032407.499964003] [dsr01.execute_packing_server]:   align_required=True
-[INFO] [1773032407.500135020] [dsr01.execute_packing_server]:     align_step 1 rx=52.11199999999998 ry=0.0 rz=0.0
-[INFO] [1773032407.500301955] [dsr01.execute_packing_server]:     align_step 2 rx=0.0 ry=-359.993 rz=0.0
-[INFO] [1773032407.500468993] [dsr01.execute_packing_server]:     align_step 3 rx=0.0 ry=0.0 rz=52.12
-[INFO] [1773032407.500631754] [dsr01.execute_packing_server]: ===== Execution Plan Debug End =====
+
+
+
+
+
+
+
+
+
+===== StagePlan Debug =====
+[INFO] [1773037005.821127265] [dsr01.execute_packing_server]: [plan 1] item=홀스
+[INFO] [1773037005.821301579] [dsr01.execute_packing_server]: pick_approach_pose: x=403.853, y=162.238, z=200.505, rpy=(78.647, 179.995, -13.647)
+[INFO] [1773037005.821465367] [dsr01.execute_packing_server]: pick_pose: x=403.853, y=162.238, z=200.505, rpy=(78.647, 179.995, -13.647)
+[INFO] [1773037005.821627392] [dsr01.execute_packing_server]: pick_retreat_pose: x=403.853, y=162.238, z=200.505
+[INFO] [1773037005.821807409] [dsr01.execute_packing_server]: station_approach_pose: x=300.000, y=0.000, z=200.000, rpy=(180.000, 0.000, 180.000)
+[INFO] [1773037005.821974212] [dsr01.execute_packing_server]: station_place_pose: x=300.000, y=0.000, z=200.505, rpy=(180.000, 0.000, 180.000)
+[INFO] [1773037005.822141579] [dsr01.execute_packing_server]: station_retreat_pose: x=400.000, y=0.000, z=250.000
+[INFO] [1773037005.822301216] [dsr01.execute_packing_server]: ===== StagePlan Debug End =====

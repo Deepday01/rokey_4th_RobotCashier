@@ -6,6 +6,7 @@ import DR_init
 import rclpy
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.node import Node
+from cashier_execute_packing.packing_models import *
 
 from cashier_interfaces.action import ExecutePacking
 
@@ -23,6 +24,9 @@ from cashier_execute_packing.config import (
     TOOLCHARGER_IP,
     TOOLCHARGER_PORT,
     VELOCITY,
+    ROTATION_STATION_APPROACH_POSE,
+    ROTATION_STATION_PLACE_BASE_POSE
+
 )
 from cashier_execute_packing.packing_executor import (
     build_execution_plan_from_request,
@@ -55,9 +59,10 @@ class RobotController:
         time.sleep(1)
 
     def move_ready(self) -> None:
-        from DSR_ROBOT2 import movej
+        from DSR_ROBOT2 import movej, mwait
 
         movej(READY_J, vel=VELOCITY, acc=ACC)
+        mwait()
 
     def move_to_pose(self, pose) -> None:
         from DSR_ROBOT2 import movel, mwait, posx
@@ -68,9 +73,9 @@ class RobotController:
             acc=ACC,
         )
         mwait()
-
+    
     def safe_rise(self) -> None:
-        from DSR_ROBOT2 import get_current_posx
+        from DSR_ROBOT2 import get_current_posx, mwait
 
         current, _ = get_current_posx()
         self.move_to_pose(
@@ -83,6 +88,7 @@ class RobotController:
                 "yaw": current[5],
             })()
         )
+        mwait()
 
     def open_gripper(self) -> None:
         from DSR_ROBOT2 import mwait
@@ -94,17 +100,51 @@ class RobotController:
                 raise RuntimeError("gripper open timeout")
             time.sleep(POLL_INTERVAL_SEC)
         mwait()
+        
 
-    def close_gripper(self) -> None:
+    def close_gripper(self, width_mm: float | None = None) -> None:
         from DSR_ROBOT2 import mwait
 
-        gripper.close_gripper()
+        if width_mm is None:
+            gripper.close_gripper()
+        else:
+            gripper.move_gripper(width_mm)
         started = time.time()
         while gripper.get_status()[0]:
             if time.time() - started > GRIPPER_TIMEOUT_SEC:
-                raise RuntimeError("gripper close timeout")
+                raise RuntimeError("gripper open timeout")
             time.sleep(POLL_INTERVAL_SEC)
         mwait()
+
+    # def rotate_object(self, object_pose, rotate_direction):
+    def rotate_object(self):
+        from DSR_ROBOT2 import mwait, get_current_posx
+        # # TODO : 여기서부터
+        # if rotate_direction == 'x_axis':
+        #     self.move_to_pose()
+        # if rotate_direction == 'y_axis':
+        #     self.move_to_pose()
+        # if rotate_direction == 'z_axis':
+        #     pass
+
+        # 45도 잡기 시작
+        # self.move_ready()
+        current, _ = get_current_posx()
+        self.move_to_pose(Pose3D(283.79, -378.888, current[2], current[3], current[4], current[5])) # 안전을 위한 정거장
+        self.open_gripper()
+        self.move_to_pose(Pose3D(283.79, -578.888, 143.574, 178.735, 137.239, 89.514))
+        self.close_gripper()
+        self.safe_rise()
+
+        # # 135도 놓기 시작
+        # self.move_to_pose(Pose3D(367.329, 3.665, 422.806, 53.462, 179.983, 53.852))
+        # self.open_gripper()
+        # self.safe_rise()
+
+
+
+
+ 
 
 
 class ExecutePackingServer(Node):
@@ -132,30 +172,126 @@ class ExecutePackingServer(Node):
         self.get_logger().info("cancel_callback()!!!")
 
         return CancelResponse.ACCEPT
+    
 
-    def rotate_object_on_rotation_station(self, rx_deg: float = 0.0, ry_deg: float = 0.0, rz_deg: float = 0.0) -> None:
-        return None
 
-    def execute_pick_and_stage_on_rotation_station(self, task, stage_plan) -> None:
+    def rotate_object_on_rotation_station(
+        self,
+        rx_deg: float = 0.0,
+        ry_deg: float = 0.0,
+        rz_deg: float = 0.0,
+    ) -> None:
+        self.robot.rotate_object()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def execute_pick_and_stage_on_rotation_station(self, plan, stage_plan : StagePlan) -> None:
+        self.get_logger().info("===== StagePlan Debug =====")
+
+        sp = plan.stage_plan
+
+
+        self.get_logger().info(
+            f"[plan {plan.task_index}] item={plan.item.name}"
+        )
+
+        self.get_logger().info(
+            f"pick_approach_pose: "
+            f"x={sp.pick_approach_pose.x:.3f}, "
+            f"y={sp.pick_approach_pose.y:.3f}, "
+            f"z={sp.pick_approach_pose.z:.3f}, "
+            f"rpy=({sp.pick_approach_pose.roll:.3f}, "
+            f"{sp.pick_approach_pose.pitch:.3f}, "
+            f"{sp.pick_approach_pose.yaw:.3f})"
+        )
+
+        self.get_logger().info(
+            f"pick_pose: "
+            f"x={sp.pick_pose.x:.3f}, "
+            f"y={sp.pick_pose.y:.3f}, "
+            f"z={sp.pick_pose.z:.3f}, "
+            f"rpy=({sp.pick_pose.roll:.3f}, "
+            f"{sp.pick_pose.pitch:.3f}, "
+            f"{sp.pick_pose.yaw:.3f})"
+        )
+
+        self.get_logger().info(
+            f"pick_retreat_pose: "
+            f"x={sp.pick_retreat_pose.x:.3f}, "
+            f"y={sp.pick_retreat_pose.y:.3f}, "
+            f"z={sp.pick_retreat_pose.z:.3f}"
+        )
+
+        self.get_logger().info(
+            f"station_approach_pose: "
+            f"x={sp.station_approach_pose.x:.3f}, "
+            f"y={sp.station_approach_pose.y:.3f}, "
+            f"z={sp.station_approach_pose.z:.3f}, "
+            f"rpy=({sp.station_approach_pose.roll:.3f}, "
+            f"{sp.station_approach_pose.pitch:.3f}, "
+            f"{sp.station_approach_pose.yaw:.3f})"
+        )
+
+        self.get_logger().info(
+            f"station_place_pose: "
+            f"x={sp.station_place_pose.x:.3f}, "
+            f"y={sp.station_place_pose.y:.3f}, "
+            f"z={sp.station_place_pose.z:.3f}, "
+            f"rpy=({sp.station_place_pose.roll:.3f}, "
+            f"{sp.station_place_pose.pitch:.3f}, "
+            f"{sp.station_place_pose.yaw:.3f})"
+        )
+
+        self.get_logger().info(
+            f"station_retreat_pose: "
+            f"x={sp.station_retreat_pose.x:.3f}, "
+            f"y={sp.station_retreat_pose.y:.3f}, "
+            f"z={sp.station_retreat_pose.z:.3f}"
+        )
+
+        self.get_logger().info("===== StagePlan Debug End =====")
+
+
+
+
         self.robot.move_to_pose(stage_plan.pick_approach_pose)
         self.robot.open_gripper()
         self.robot.move_to_pose(stage_plan.pick_pose)
         self.robot.close_gripper()
         self.robot.move_to_pose(stage_plan.pick_retreat_pose)
+
         self.robot.move_to_pose(stage_plan.station_approach_pose)
         self.robot.move_to_pose(stage_plan.station_place_pose)
         self.robot.open_gripper()
         self.robot.move_to_pose(stage_plan.station_retreat_pose)
 
-    def execute_align_object_on_rotation_station(self, task, align_plan) -> None:
-        if not align_plan.required:
-            return
-        for step in align_plan.steps:
-            self.rotate_object_on_rotation_station(
-                rx_deg=step.rx_deg,
-                ry_deg=step.ry_deg,
-                rz_deg=step.rz_deg,
-            )
+    def execute_align_object_on_rotation_station(self, plan, align_plan) -> None:
+        # 테스트 코드
+        self.rotate_object_on_rotation_station(
+            0,0,0
+        )
+        
+        # 릴리즈 코드
+        # if not align_plan.required:
+        #     return
+        # for step in align_plan.steps:
+        #     self.rotate_object_on_rotation_station(
+        #         rx_deg=step.rx_deg,
+        #         ry_deg=step.ry_deg,
+        #         rz_deg=step.rz_deg,
+        #     )
 
     def execute_pick_and_place_to_box(self, task, box_plan) -> None:
         self.robot.move_to_pose(box_plan.station_pick_approach_pose)
@@ -175,7 +311,7 @@ class ExecutePackingServer(Node):
         try:
 
             request = goal_handle.request
-            plan = build_execution_plan_from_request(
+            PackingPlanList = build_execution_plan_from_request(
                 pick_items=request.pick_items,
                 place_items=request.place_items,
             )
@@ -187,20 +323,20 @@ class ExecutePackingServer(Node):
 
             self.get_logger().info("===== Execution Plan Debug =====")
 
-            self.get_logger().info(f"task_count={len(plan.tasks)}")
+            self.get_logger().info(f"task_count={len(PackingPlanList.planList)}")
 
-            for task in plan.tasks:
+            for plan in PackingPlanList.planList:
 
-                item_pose = task.item.pose
-                place_pose = task.placement.pose
+                item_pose = plan.item.pose
+                place_pose = plan.placement.pose
 
-                station_place = task.stage_plan.station_place_pose
-                station_pick = task.box_plan.station_pick_pose
-                box_place = task.box_plan.box_place_pose
+                station_place = plan.stage_plan.station_place_pose
+                station_pick = plan.box_plan.station_pick_pose
+                box_place = plan.box_plan.box_place_pose
 
                 self.get_logger().info(
-                    f"[TASK {task.task_index}] item={task.item.name} "
-                    f"grip_width={task.grip_width}"
+                    f"[TASK {plan.task_index}] item={plan.item.name} "
+                    f"grip_width={plan.grip_width}"
                 )
 
                 self.get_logger().info(
@@ -226,11 +362,11 @@ class ExecutePackingServer(Node):
                 )
 
                 self.get_logger().info(
-                    f"  align_required={task.align_plan.required}"
+                    f"  align_required={plan.align_plan.required}"
                 )
 
-                if task.align_plan.required:
-                    for i, step in enumerate(task.align_plan.steps, start=1):
+                if plan.align_plan.required:
+                    for i, step in enumerate(plan.align_plan.steps, start=1):
                         self.get_logger().info(
                             f"    align_step {i} "
                             f"rx={step.rx_deg} "
@@ -244,15 +380,9 @@ class ExecutePackingServer(Node):
             # 디버깅 종료
 
 
-
-
-
-
-
-
             self.robot.move_ready()
             execute_plan_with_callbacks(
-                plan=plan,
+                planList=PackingPlanList,
                 on_pick_and_stage_on_rotation_station=self.execute_pick_and_stage_on_rotation_station,
                 on_align_object_on_rotation_station=self.execute_align_object_on_rotation_station,
                 on_pick_and_place_to_box=self.execute_pick_and_place_to_box,

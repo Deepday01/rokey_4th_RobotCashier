@@ -165,7 +165,7 @@ class PackingPlan:
 # 여러 물체 작업을 하나로 묶은 실행 계획
 @dataclass
 class PackingPlanList:
-    tasks: List[PackingPlan] = field(default_factory=list)
+    planList: List[PackingPlan] = field(default_factory=list)
 
 
 # ================================

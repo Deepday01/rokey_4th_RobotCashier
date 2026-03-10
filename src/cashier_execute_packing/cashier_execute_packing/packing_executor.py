@@ -125,20 +125,20 @@ def build_execution_plan_from_request(pick_items: List, place_items: List, logge
     for task_index, placement in enumerate(placements, start=1):
         item = items[placement.object_index]
         tasks.append(build_single_plan(task_index=task_index, item=item, placement=placement, grip_width = compute_grip_width(item)))
-    return PackingPlanList(tasks=tasks)
+    return PackingPlanList(planList=tasks)
 
 
 def execute_plan_with_callbacks(
-    plan: PackingPlanList,
+    planList: PackingPlanList,
     on_pick_and_stage_on_rotation_station,
     on_align_object_on_rotation_station,
     on_pick_and_place_to_box,
     logger=None,
 ) -> None:
-    for task in plan.tasks:
-        on_pick_and_stage_on_rotation_station(task, task.stage_plan)
-        on_align_object_on_rotation_station(task, task.align_plan)
-        on_pick_and_place_to_box(task, task.box_plan)
+    for plan in planList.planList:
+        # on_pick_and_stage_on_rotation_station(plan, plan.stage_plan)
+        on_align_object_on_rotation_station(plan, plan.align_plan)
+        # on_pick_and_place_to_box(plan, plan.box_plan)
 
 
 def build_station_place_pose_from_item_z(item) -> Pose3D:
