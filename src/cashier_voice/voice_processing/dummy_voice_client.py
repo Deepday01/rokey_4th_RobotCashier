@@ -24,22 +24,57 @@ class DummyVoiceClient(Node):
 
         self.pending_edit = False
 
+    # def make_item_msg(self, item_name: str) -> Item:
+    #     msg = Item()
+    #     msg.item_id = item_name
+    #     msg.name = item_name
+
+    #     # 더미값
+    #     msg.width = 0
+    #     msg.depth = 0
+    #     msg.height = 0
+    #     msg.durability = 0
+    #     msg.x = 0.0
+    #     msg.y = 0.0
+    #     msg.z = 0.0
+    #     msg.roll = 0.0
+    #     msg.pitch = 0.0
+    #     msg.yaw = 0.0
+    #     return msg
+
     def make_item_msg(self, item_name: str) -> Item:
         msg = Item()
         msg.item_id = item_name
         msg.name = item_name
 
-        # 더미값
+        pose_map = {
+            "halls":        [328.1, -66.2, 280.0, 0.0, 0.0, -88.5], # 586.0
+            "insect":       [245.4, 225.1, 280.0, 0.0, 0.0, -72.6], # 564.0
+            "caramel":      [380.7, 187.4, 280.0, 0.0, 0.0, 39.1],  # 576.0
+            "candy":        [246.81, 216.98, 280.0, 90.0, 180.0, 45.73], #566.00,
+            "cream":        [158.9, 152.5, 280.0, 90.0, 180.0, 70.0],
+            "eclipse_red":  [340.0, 180.0, 280.0, 90.0, 180.0, 15.0],
+            "eclipse_green":[380.0, 120.0, 280.0, 90.0, 180.0, 35.0],
+        }
+
+        x, y, z, roll, pitch, yaw = pose_map.get(
+            item_name, [0.0, 0.0, 280.0, 90.0, 180.0, 90.0]
+        )
+
+        # 더미 크기값
         msg.width = 0
         msg.depth = 0
         msg.height = 0
         msg.durability = 0
-        msg.x = 0.0
-        msg.y = 0.0
-        msg.z = 0.0
-        msg.roll = 0.0
-        msg.pitch = 0.0
-        msg.yaw = 0.0
+
+        # 취소용 pose
+        msg.x = x
+        msg.y = y
+        msg.z = z
+        msg.roll = roll
+        msg.pitch = pitch
+        msg.yaw = yaw
+
         return msg
 
     def input_items(self):

@@ -20,6 +20,8 @@ from voice_processing.stt import STT
 # 추가
 import warnings
 from rclpy.action import ActionServer
+# 로봇 이동 관련 코드 추가 (취소 명령 시 로봇이 상품 제거 위해)
+from robot_control.robot_cancel_helper import remove_item_by_pose
 from cashier_interfaces.action import VoiceSession
 from voice_processing.tts_helper import speak
 import re
@@ -74,8 +76,8 @@ class GetKeyword(Node):
             - 크림 : cream
             - 빨간이클립스 : eclipse_red
             - 빨간박하사탕 : eclipse_red
-            - 초록이클립스 : eclipse_green
-            - 초록박하사탕 : eclipse_green
+            - 초록이클립스 : eclipse_gre
+            - 초록박하사탕 : eclipse_gre
 
             <명령 종류>
             - scan : 테이블 위 상품 전체를 스캔/인식 시작하는 명령
@@ -265,6 +267,17 @@ class GetKeyword(Node):
             new_items.append(item)
 
         return new_items
+
+    def select_cancel_targets_by_name(self, items, target_name, remove_count):
+        selected = []
+
+        for item in items:
+            if item.name == target_name:
+                selected.append(item)
+                if len(selected) == remove_count:
+                    break
+
+        return selected
 
     def parse_cancel_counts(self, counts, item_len):
         parsed_counts = []
@@ -550,11 +563,69 @@ class GetKeyword(Node):
                             )
                             break
                     # 2) 전부 가능하면 실제 삭제
+                    # else:
+                    #     updated_items = list(items_in)
+
+                    #     for target_name, cancel_count in zip(items, cancel_counts):
+                    #         updated_items = self.remove_items_by_name(updated_items, target_name, cancel_count)
+
+                    #     removed_log = ", ".join(
+                    #         [f"{name} {count}개" for name, count in zip(items, cancel_counts)]
+                    #     )
+                    #     print(f"{removed_log} 취소했습니다.")
+                    #     speak(f"{removed_log} 취소했습니다.")
+
+                    #     items_in = updated_items
+
+                    #     self.get_logger().info(f"updated item count: {len(items_in)}")
+                    #     for i, item in enumerate(items_in):
+                    #         self.get_logger().info(
+                    #             f"[UPDATED {i}] item_id={item.item_id}, name={item.name}"
+                    #         )
+
+                    #     if len(items_in) == 0:
+                    #         print("모든 상품이 취소되었습니다. 수정을 종료합니다.")
+                    #         speak("모든 상품이 취소되었습니다. 수정을 종료합니다.")
+                    #         # pack 관련 적용
+                    #         result.success = True
+                    #         result.command = CMD_UNKNOWN
+                    #         result.items_out = items_in
+                    #         goal_handle.succeed()
+                    #         return result
+
+                    #     print("추가로 수정할 상품이 있으신가요?")
+                    #     speak("추가로 수정할 상품이 있으신가요?")
+                    #     state = "ASK_MORE_EDIT"
+                    #     continue
+
+                    # 2) 전부 가능하면 물리 제거 후 논리 삭제
                     else:
                         updated_items = list(items_in)
 
                         for target_name, cancel_count in zip(items, cancel_counts):
-                            updated_items = self.remove_items_by_name(updated_items, target_name, cancel_count)
+                            # remove_items_by_name와 같은 기준으로
+                            # 같은 이름 상품을 앞에서부터 cancel_count개 선택
+                            cancel_targets = self.select_cancel_targets_by_name(
+                                updated_items, target_name, cancel_count
+                            )
+
+                            # 먼저 물리적으로 제거
+                            for target_item in cancel_targets:
+                                target_pose = [
+                                    target_item.x,
+                                    target_item.y,
+                                    target_item.z,
+                                    target_item.roll,
+                                    target_item.pitch,
+                                    target_item.yaw,
+                                ]
+
+                                remove_item_by_pose(target_pose)
+
+                            # 물리 제거 후 논리 삭제
+                            updated_items = self.remove_items_by_name(
+                                updated_items, target_name, cancel_count
+                            )
 
                         removed_log = ", ".join(
                             [f"{name} {count}개" for name, count in zip(items, cancel_counts)]
@@ -573,7 +644,6 @@ class GetKeyword(Node):
                         if len(items_in) == 0:
                             print("모든 상품이 취소되었습니다. 수정을 종료합니다.")
                             speak("모든 상품이 취소되었습니다. 수정을 종료합니다.")
-                            # pack 관련 적용
                             result.success = True
                             result.command = CMD_UNKNOWN
                             result.items_out = items_in
