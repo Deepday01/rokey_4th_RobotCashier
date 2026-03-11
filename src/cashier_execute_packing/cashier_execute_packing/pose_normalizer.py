@@ -1,4 +1,4 @@
-from .packing_models import Pose3D
+from .config import Pose3D
 
 
 def normalize_pose_rpy(pose: Pose3D, logger=None) -> Pose3D:

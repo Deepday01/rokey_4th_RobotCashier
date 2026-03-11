@@ -2,7 +2,7 @@
 
 from typing import Tuple
 
-from .packing_models import (
+from .config import (
     ItemState,
     PlacementState,
     PickPlan,
@@ -17,8 +17,6 @@ from .pose_normalizer import normalize_pose_rpy
 # ============================
 
 DEFAULT_APPROACH_OFFSET_Z = 100.0
-DEFAULT_MIN_GRIP_WIDTH = 5.0
-DEFAULT_GRIP_MARGIN = 2.0
 
 
 # ============================
@@ -43,42 +41,6 @@ def _log(logger, level: str, msg: str):
 # ============================
 # Basic helpers
 # ============================
-
-def _xy_grip_candidates(item: ItemState) -> Tuple[float, float]:
-    """
-    현재 물체의 상부에서 접근한다고 가정할 때,
-    그리퍼가 닫아야 할 후보 길이는 width / depth 이다.
-    """
-    return item.size.width, item.size.depth
-
-
-def compute_grip_width(
-    item: ItemState,
-    margin: float = DEFAULT_GRIP_MARGIN,
-    min_width: float = DEFAULT_MIN_GRIP_WIDTH,
-    logger=None,
-) -> float:
-    """
-    pick 시 사용할 grip width 계산
-
-    규칙
-    - width, depth 중 더 작은 값을 선택
-    - margin 을 뺀다
-    - min_width 보다 작아지면 min_width 사용
-    """
-    width_candidate, depth_candidate = _xy_grip_candidates(item)
-    base_width = min(width_candidate, depth_candidate)
-    grip_width = max(min_width, base_width - margin)
-
-    _log(
-        logger,
-        "info",
-        f"compute_grip_width: item={item.name}, "
-        f"width={item.size.width}, depth={item.size.depth}, "
-        f"base={base_width}, margin={margin}, result={grip_width}",
-    )
-
-    return grip_width
 
 
 def build_approach_pose(
@@ -151,8 +113,6 @@ def normalize_placement_for_place(placement: PlacementState, logger=None) -> Pla
 def build_pick_plan(
     item: ItemState,
     approach_offset_z: float = DEFAULT_APPROACH_OFFSET_Z,
-    grip_margin: float = DEFAULT_GRIP_MARGIN,
-    min_grip_width: float = DEFAULT_MIN_GRIP_WIDTH,
     logger=None,
 ) -> PickPlan:
     """
@@ -164,13 +124,6 @@ def build_pick_plan(
     - pick pose 는 item 중심 pose 사용
     """
     normalized_item = normalize_item_for_pick(item, logger)
-
-    grip_width = compute_grip_width(
-        normalized_item,
-        margin=grip_margin,
-        min_width=min_grip_width,
-        logger=logger,
-    )
 
     pick_pose = Pose3D(
         x=normalized_item.pose.x,
@@ -190,7 +143,6 @@ def build_pick_plan(
     plan = PickPlan(
         approach_pose=approach_pose,
         pick_pose=pick_pose,
-        grip_width=grip_width,
     )
 
     _log(
@@ -201,7 +153,6 @@ def build_pick_plan(
         f"{approach_pose.roll},{approach_pose.pitch},{approach_pose.yaw}), "
         f"pick_pose=({pick_pose.x},{pick_pose.y},{pick_pose.z},"
         f"{pick_pose.roll},{pick_pose.pitch},{pick_pose.yaw}), "
-        f"grip_width={grip_width}",
     )
 
     return plan
@@ -266,8 +217,6 @@ def build_pick_and_place_plan(
     item: ItemState,
     placement: PlacementState,
     approach_offset_z: float = DEFAULT_APPROACH_OFFSET_Z,
-    grip_margin: float = DEFAULT_GRIP_MARGIN,
-    min_grip_width: float = DEFAULT_MIN_GRIP_WIDTH,
     logger=None,
 ) -> Tuple[PickPlan, PlacePlan]:
     """
@@ -282,8 +231,6 @@ def build_pick_and_place_plan(
     pick_plan = build_pick_plan(
         item=item,
         approach_offset_z=approach_offset_z,
-        grip_margin=grip_margin,
-        min_grip_width=min_grip_width,
         logger=logger,
     )
 
