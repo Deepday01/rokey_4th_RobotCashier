@@ -127,31 +127,80 @@ class RobotController:
         # if rotate_direction == 'z_axis':
         #     pass
 
-        # # 45도 잡기 시작
-        # current, _ = get_current_posx()
-        # self.open_gripper()
-        # self.move_to_pose(Pose3D(91.712, -582.737, 384.288, 177.012, 135.921, 88.244)) # y축 회전 45도 잡기전 경유 지점 
-        # self.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 10, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기
-        # # 10
-        # self.close_gripper(width_mm = 40+15) # 기존 + 부착된 그리퍼 너비길이가 합쳐서 15mm 이라 보정
-        # # self.close_gripper() 
-        # self.safe_rise() # 안전을 위해 추가
+        # 45도 잡기 시작
+        current, _ = get_current_posx()
+        self.open_gripper()
+        self.move_to_pose(Pose3D(91.712, -582.737, 384.288, 177.012, 135.921, 88.244)) # y축 회전 45도 잡기전 경유 지점 
+        self.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 10, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기
+        # 10
+        self.close_gripper(width_mm = 40+15) # 기존 + 부착된 그리퍼 너비길이가 합쳐서 15mm 이라 보정
+        # self.close_gripper() 
+        self.safe_rise() # 안전을 위해 추가
 
 
-        # # # 135도 놓기 시작
-        # self.move_to_pose(Pose3D(-152.673, -579.061, 207.891, 179.251, -132.47, 87.477)) # y축 회전 135도 놓기전 경우 지점
-        # self.move_to_pose(Pose3D(-152.678, -579.069, 7.86 + 37.5, 179.252, -132.471, 87.476)) # y축 회전 135도 놓기
-        # # 37.5
-
-        # self.open_gripper()
-        # self.safe_rise()
-
-        # current, _ = get_current_posx()
-        # self.move_to_pose(Pose3D(286.7, 117, 546-60 +100,current[3],current[4], 41)) 
-        # tcp 끝단에서 추가 그리퍼 길이 60 // 지금 테스트에서는 z값만 추가하면됨
+        # # 135도 놓기 시작
+        self.move_to_pose(Pose3D(-152.673, -579.061, 207.891, 179.251, -132.47, 87.477)) # y축 회전 135도 놓기전 경우 지점
+        self.move_to_pose(Pose3D(-152.678, -579.069, 7.86 + 37.5, 179.252, -132.471, 87.476)) # y축 회전 135도 놓기
+        # 37.5
 
         self.open_gripper()
-        self.close_gripper()
+        self.safe_rise()
+
+        current, _ = get_current_posx()
+        self.move_to_pose(Pose3D(286.7, 117, 546-60 +100,current[3],current[4], 41)) 
+        # tcp 끝단에서 추가 그리퍼 길이 60 // 지금 테스트에서는 z값만 추가하면됨
+
+
+        current, _ = get_current_posx()
+        self.move_to_pose(Pose3D(430.0, 78.0, current[2],current[3],current[4], 83.0 +90)) 
+        
+
+
+
+        ########################################### 테스트 시작 ###########################################
+        # self.move_ready()
+
+
+        
+        # 스캔위치
+        # self.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90)) 
+
+
+        # 우측 상단
+        # self.move_to_pose(Pose3D(493.0, -75, 240, 90, 180, 90)) 
+        # 좌측 상단
+        # self.move_to_pose(Pose3D(493.0, -75 + 400, 240, 90, 180, 90)) 
+        # 좌측 하단
+        # self.move_to_pose(Pose3D(493.0 -400, -75 + 400, 240, 90, 180, 90)) 
+        # 우측 하단
+        # self.move_to_pose(Pose3D(493.0 -400, -75, 240, 90, 180, 90)) 
+
+
+        # 에크론
+        # self.move_to_pose(Pose3D(287.4, 53.2, 280, 90, 180, 90)) 
+        # 카라멜
+        # self.move_to_pose(Pose3D(431.6, 140.7, 280, 90, 180, 90)) 
+        # 인섹트
+        # self.move_to_pose(Pose3D(158.9, 152.5, 280, 90, 180, 90)) 
+        # 이클립스
+        # self.move_to_pose(Pose3D(250.6, 277.1, 280, 90, 180, 90)) 
+
+
+
+
+        # self.move_ready()
+
+        # self.open_gripper()
+        # self.close_gripper(width_mm = 32+10+2)
+        # self.safe_rise()
+
+
+        
+
+        ########################################### 테스트 종료 ###########################################
+
+
+
 
 
 
@@ -205,7 +254,7 @@ class ExecutePackingServer(Node):
 
 
 
-    def execute_pick_and_stage_on_rotation_station(self, plan, stage_plan : StagePlan) -> None:
+    def excute_object_pick_and_go_to_rotation_station(self, plan) -> None:
         self.get_logger().info("===== StagePlan Debug =====")
 
         sp = plan.stage_plan
@@ -274,7 +323,7 @@ class ExecutePackingServer(Node):
 
 
 
-        self.robot.move_to_pose(stage_plan.pick_approach_pose)
+        self.robot.move_to_pose(sp.stage_plan.pick_approach_pose)
         self.robot.open_gripper()
         self.robot.move_to_pose(stage_plan.pick_pose)
         self.robot.close_gripper()
@@ -301,7 +350,7 @@ class ExecutePackingServer(Node):
         #         rz_deg=step.rz_deg,
         #     )
 
-    def execute_pick_and_place_to_box(self, task, box_plan) -> None:
+    def execute_pick_and_place_to_box(self, task, box_plan : BoxPlan) -> None:
         self.robot.move_to_pose(box_plan.station_pick_approach_pose)
         self.robot.move_to_pose(box_plan.station_pick_pose)
         self.robot.close_gripper()
@@ -391,9 +440,9 @@ class ExecutePackingServer(Node):
             # self.robot.move_ready()
             execute_plan_with_callbacks(
                 planList=PackingPlanList,
-                on_pick_and_stage_on_rotation_station=self.execute_pick_and_stage_on_rotation_station,
-                on_align_object_on_rotation_station=self.execute_align_object_on_rotation_station,
-                on_pick_and_place_to_box=self.execute_pick_and_place_to_box,
+                excute_object_pick_and_go_to_rotation_station=self.excute_object_pick_and_go_to_rotation_station,
+                execute_align_object_on_rotation_station=self.execute_align_object_on_rotation_station,
+                execute_pick_and_place_to_box=self.execute_pick_and_place_to_box,
             )
 
             goal_handle.succeed()
