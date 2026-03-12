@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-# workflow_node.py
+# workflow_node_dev.py
+
+# 디버깅 모드 삽입.
+# 260310_전체(5인)통신완료
 
 import time
 import threading
@@ -66,11 +69,20 @@ class WorkflowNode(Node):
         # WAKEUP 액션이 실제로는 음성 대기를 담당하므로,
         # workflow는 계속 IDLE -> WAKEUP 사이클로 두어도 괜찮음
         self.create_timer(1.0, self._tick)
-
         self.get_logger().info("workflow_node ready. state=IDLE")
+        
+        # 디버그 모드 설정용
+        self.declare_parameter("debug_mode", False)
+        self.debug_mode = self.get_parameter("debug_mode").value
 
+    # 로그용
     def _item_names(self, items):
       return [item.name for item in items]
+    
+    # 디버그 모드가 True 일때만 로그 출력
+    def _dbg(self, msg):
+        if self.debug_mode:
+            self.get_logger().info(f"[DEBUG] {msg}")
 
     # ------------------------------------------------------------------
     # Main tick
@@ -145,7 +157,8 @@ class WorkflowNode(Node):
             self.get_logger().error(f"workflow failed: {self.last_error}")
 
         finally:
-            # MVP에서는 recovery 없이 다시 IDLE로 복귀
+            # MVP에서는 recovery 없이 다시 IDLE로 복귀 
+            # 지금은 복귀도 꺼둠.
             time.sleep(0.5)
             # self._set_state(WorkflowState.IDLE)
             self.is_running = False
@@ -191,6 +204,10 @@ class WorkflowNode(Node):
         goal.mode = mode
         goal.items_in = items if items is not None else []
 
+        # 디버깅모드
+        self._dbg(f"[VOICE TX] mode={goal.mode}, items_in={self._item_names(goal.items_in)}")
+
+        # goal 보내기
         send_future = self.voice_client.send_goal_async(
             goal,
             feedback_callback=self._voice_feedback_callback
@@ -200,14 +217,13 @@ class WorkflowNode(Node):
         if not goal_handle.accepted:
             raise RuntimeError(f"voice goal rejected: mode={mode}")
 
+        # result 받기
         result_future = goal_handle.get_result_async()
         result = self._wait_future(result_future).result
 
-        # 제품확인용
-        self.get_logger().info(
-        f"[VOICE RES] success={result.success}, command={result.command}, items_out={self._item_names(result.items_out)}"
-        )   
-
+        # 디버깅모드
+        self._dbg(f"[VOICE RX] success={result.success}, command={result.command}")
+        
         return result.success, list(result.items_out)
 
     def call_vision(self) -> Tuple[bool, List[Item]]:
@@ -216,6 +232,9 @@ class WorkflowNode(Node):
 
         goal = ScanItems.Goal()
         goal.start_vision = True
+
+        # 디버깅모드
+        self._dbg(f"[VISION TX] start_vision={goal.start_vision}")
 
         send_future = self.vision_client.send_goal_async(
             goal,
@@ -227,11 +246,11 @@ class WorkflowNode(Node):
             raise RuntimeError("vision goal rejected")
 
         result_future = goal_handle.get_result_async()
+        self._dbg("[VISION] waiting result future...")
         result = self._wait_future(result_future).result
         
-        self.get_logger().info(
-        f"[VISION RES] success={result.success}, items_scan={self._item_names(result.items_scan)}"
-        )   
+        # 디버깅모드
+        self._dbg(f"[VISION RX] success={result.success}, items_scan={result.items_scan}") 
 
         return result.success, list(result.items_scan)
 
@@ -241,13 +260,15 @@ class WorkflowNode(Node):
 
         request = ComputePackingPlan.Request()
         request.items = items
+        
+        # 디버깅모드
+        self._dbg(f"[PLAN TX] items={self._item_names(request.items)}")
 
         future = self.plan_client.call_async(request)
         response = self._wait_future(future, timeout_sec=30.0)
 
-        self.get_logger().info(
-            f"[PLAN RES] success={response.success}, placements={len(response.placements)}"
-        )    
+        # 디버깅모드
+        self._dbg(f"[PLAN RX] success={response.success},placement={response.placements}")   
 
         return response.success, list(response.placements)
 
@@ -262,6 +283,12 @@ class WorkflowNode(Node):
         goal = ExecutePacking.Goal()
         goal.pick_items = items
         goal.place_items = plan
+        
+        # 디버깅모드
+        self._dbg(
+            f"[EXECUTE TX] pick_items={self._item_names(goal.pick_items)}, "
+            f"place={goal.place_items}"
+        )
 
         send_future = self.execute_client.send_goal_async(
             goal,
@@ -275,23 +302,28 @@ class WorkflowNode(Node):
         result_future = goal_handle.get_result_async()
         result = self._wait_future(result_future).result
 
+        # 디버깅모드
+        self._dbg(
+            f"[EXECUTE RX] success={result.success}, pick_count={len(goal.pick_items)}, place_count={len(goal.place_items)}"
+        )   
+
         return result.success
 
     # ------------------------------------------------------------------
     # Feedback callbacks 진행상황을 로그로 보기 좋게 하기 위해. (필수 아님)
     # ------------------------------------------------------------------
     def _voice_feedback_callback(self, feedback_msg):
-        self.get_logger().debug(
+        self._dbg(
             f"[VOICE] runtime={feedback_msg.feedback.runtime}s"
         )
 
     def _vision_feedback_callback(self, feedback_msg):
-        self.get_logger().debug(
+        self._dbg(
             f"[VISION] runtime={feedback_msg.feedback.runtime}s"
         )
 
     def _execute_feedback_callback(self, feedback_msg):
-        self.get_logger().debug(
+        self._dbg(
             f"[EXECUTE] progress={feedback_msg.feedback.progress}, "
             f"runtime={feedback_msg.feedback.runtime}s"
         )
