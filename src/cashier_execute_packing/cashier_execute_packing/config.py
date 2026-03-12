@@ -18,13 +18,14 @@ ROBOT_TCP = "GripperDA_v1"   # 로봇 TCP (Tool Center Point) 이름
 VELOCITY = 100               # 로봇 이동 속도
 ACC = 100                    # 로봇 이동 가속도
 
-SAFE_Z = 300.0               # 충돌 방지를 위한 안전 상승 높이
+SAFE_Z = 150.0               # 충돌 방지를 위한 안전 상승 높이
 
-BASE_Z = 220.0 # 베이스 z 높이
+BASE_Z = 222.0 # 베이스 z 높이
 PLACE_Z = 210.0 # 베이스 z 높이 # todo 테스트할때 조정하기
 
 
-READY_J = [0, 0, 90, 0, 90, 0]  
+# READY_J = [0, 0, 90, 0, 90, 0]
+READY_J = [0, 0, 90, 0, 90, -90]
 # 로봇 시작 대기 자세 (Joint 좌표)
 
 
@@ -32,7 +33,7 @@ READY_J = [0, 0, 90, 0, 90, 0]
 # Pick / Place 계산 파라미터
 # ================================
 
-APPROACH_OFFSET_Z = 200.0  
+APPROACH_OFFSET_Z = 150.0  
 # 목표 위치에서 위쪽으로 얼마나 떨어진 위치에서 접근할지
 # ex) pick 전에 위에서 접근
 
@@ -189,10 +190,7 @@ class InitObjectPickPlan:
     pick_approach_pose: Pose3D      # pick 접근 위치
     pick_pose: Pose3D               # 실제 pick 위치
     pick_retreat_pose: Pose3D       # pick 후 상승 위치 # todo 안쓸듯 아마도
-    # station_approach_pose: Pose3D   # 회전 스테이션 접근 위치
-    # station_place_pose: Pose3D      # 회전 스테이션 위에 놓는 위치
-    # station_retreat_pose: Pose3D    # 스테이션에서 이탈 위치
-
+  
 
 # ================================
 # AlignPlan
@@ -248,8 +246,7 @@ def pick_pose_from_ros_fields(msg) -> Pose3D:
     return Pose3D(
         x=msg.x,
         y=msg.y,
-        z=220 + msg.depth/2, # 베이스 높이 + depth/2 = 물체 중심 높이
-        # z=BASE_Z + depth/2, # 베이스 높이 + depth/2 = 물체 중심 높이
+        z=BASE_Z + msg.depth/2, # 베이스 높이 + depth/2 = 물체 중심 높이
         roll=msg.roll,
         pitch=msg.pitch,
         yaw=msg.yaw,

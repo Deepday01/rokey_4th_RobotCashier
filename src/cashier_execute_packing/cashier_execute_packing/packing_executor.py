@@ -72,9 +72,11 @@ def convert_request_to_internal_models(pick_items: List, place_items: List) -> T
 def makePlan(task_index: int, item, placement) -> PackingPlan:
     # 초기 물체 픽 플랜 
     init_object_pick_plan = make_init_object_pick_plan(item)
+    
     # 정렬 플랜
     align_plan = make_align_plan(item, placement)
 
+    # 박스 플랜
     box_plan = build_box_plan(
         placement=placement,
         # TODO: station_pick_pose 계산해서 만들기
@@ -100,6 +102,17 @@ def make_packing_plan_list(pick_items: List, place_items: List, logger=None) -> 
     planList: List[PackingPlan] = []
     for index, placement in enumerate(placementList, start=1):
         item = itemList[placement.object_index]
+
+        #==============테스트=====================
+        # logger().info(f"item<<확인1 x: {item.pose.x}")
+        # logger().info(f"item<<확인1 y: {item.pose.y}")
+        # logger().info(f"item<<확인1 z: {item.pose.z}")
+        # logger().info(f"item<<확인1 roll: {item.pose.roll}")
+        # logger().info(f"item<<확인1 pitch: {item.pose.pitch}")
+        # logger().info(f"item<<확인1 yaw: {item.pose.yaw}")
+        #==============테스트=====================  
+
+
         planList.append(makePlan(task_index=index, item=item, placement=placement))
     return PackingPlanList(planList=planList)
 
@@ -107,14 +120,14 @@ def make_packing_plan_list(pick_items: List, place_items: List, logger=None) -> 
 def execute_plan_with_callbacks(
     planList: PackingPlanList,
     excute_init_object_pick,
-    align_object,
+    excute_align_object,
     execute_pick_and_place_to_box,
     logger=None,
 ) -> None:
     for plan in planList.planList:
-        # excute_init_object_pick(plan)
-        align_object(plan, plan.align_plan)
-        # execute_pick_and_place_to_box(plan, plan.box_plan)
+        excute_init_object_pick(plan)
+        excute_align_object(plan)
+        # execute_pick_and_place_to_box(plan)
 
 
 def build_station_place_pose_from_item_z(item) -> Pose3D:

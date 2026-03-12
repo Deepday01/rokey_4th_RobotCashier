@@ -1,35 +1,100 @@
-===== Execution Plan Debug =====
-[INFO] [1773035002.274353381] [dsr01.execute_packing_server]: task_count=1
-[INFO] [1773035002.274516343] [dsr01.execute_packing_server]: [TASK 1] item=홀스 grip_width=42.0
-[INFO] [1773035002.274686448] [dsr01.execute_packing_server]:   pick_pose=(403.853, 162.238, 294.505) rpy=(78.647, 179.995, -13.647)
-[INFO] [1773035002.274851679] [dsr01.execute_packing_server]:   place_pose=(403.795, -149.951, 294.518) rpy=(130.759, -179.998, 38.473)
-[INFO] [1773035002.275011377] [dsr01.execute_packing_server]:   station_place=(300.000, 0.000, 294.505)
-[INFO] [1773035002.275169281] [dsr01.execute_packing_server]:   station_pick=(300.000, 0.000, 294.505)
-[INFO] [1773035002.275328323] [dsr01.execute_packing_server]:   box_place=(403.795, -149.951, 294.518)
-[INFO] [1773035002.275486301] [dsr01.execute_packing_server]:   align_required=True
-[INFO] [1773035002.275649445] [dsr01.execute_packing_server]:     align_step 1 rx=52.11199999999998 ry=0.0 rz=0.0
-[INFO] [1773035002.275818049] [dsr01.execute_packing_server]:     align_step 2 rx=0.0 ry=-359.993 rz=0.0
-[INFO] [1773035002.275979261] [dsr01.execute_packing_server]:     align_step 3 rx=0.0 ry=0.0 rz=52.12
-[INFO] [1773035002.276132267] [dsr01.execute_packing_server]: ===== Execution Plan Debug 
+ros2 run cashier_execute_packing execute_packing_server
+_robot_id =dsr01
+_robot_model =m0609
+_srv_name_prefix =
+_topic_name_prefix =
+[INFO] [1773315093.397461488] [dsr01.execute_packing_server]: goal_callback()!!!
+[INFO] [1773315093.398170411] [dsr01.execute_packing_server]: execute_callback()!!!
+[INFO] [1773315095.571301812] [dsr01.execute_packing_server]: 잡는 높이 조정(물체 중심 z - 그리퍼 너비에 따른 뎁스 오프셋값) 229.500 - 0.400 = 229.100
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315104.071324764] [dsr01.execute_packing_server]: 물체 요 확인: 45.0
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315109.571969234] [dsr01.execute_packing_server]: 물체 정렬 yaw 확인: 45.0
+[INFO] [1773315111.072052509] [dsr01.execute_packing_server]: packingPlan.item.pose.yaw 확인: 0.0
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315126.272290312] [dsr01.execute_packing_server]: 회전 수행 > step : 0.0, 0.0, 90
+[INFO] [1773315126.272510296] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315127.072020883] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 7.5
+[INFO] [1773315127.072233834] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 0.3999999999999986
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315130.938175025] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: 7.5
+[INFO] [1773315130.938406892] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: 0.3999999999999986
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315139.272660161] [dsr01.execute_packing_server]: 회전 수행 > step : 0.0, 90, 0.0
+[INFO] [1773315139.272871075] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315143.372803969] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 7.5
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315147.421818600] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 80
+[INFO] [1773315154.773118233] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 25.0
+[INFO] [1773315158.073029334] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 25.0
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315161.873274565] [dsr01.execute_packing_server]: 회전 수행 > step : 0.0, 0.0, 90
+[INFO] [1773315161.873520343] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315164.572805241] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 25.0
+[INFO] [1773315164.573018617] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 1.3999999999999986
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773315168.022428114] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: 25.0
+[INFO] [1773315168.022655148] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: 1.3999999999999986
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
 
 
-
-
-
-
-
-
-
-
-
-
-
-===== StagePlan Debug =====
-[INFO] [1773037005.821127265] [dsr01.execute_packing_server]: [plan 1] item=홀스
-[INFO] [1773037005.821301579] [dsr01.execute_packing_server]: pick_approach_pose: x=403.853, y=162.238, z=200.505, rpy=(78.647, 179.995, -13.647)
-[INFO] [1773037005.821465367] [dsr01.execute_packing_server]: pick_pose: x=403.853, y=162.238, z=200.505, rpy=(78.647, 179.995, -13.647)
-[INFO] [1773037005.821627392] [dsr01.execute_packing_server]: pick_retreat_pose: x=403.853, y=162.238, z=200.505
-[INFO] [1773037005.821807409] [dsr01.execute_packing_server]: station_approach_pose: x=300.000, y=0.000, z=200.000, rpy=(180.000, 0.000, 180.000)
-[INFO] [1773037005.821974212] [dsr01.execute_packing_server]: station_place_pose: x=300.000, y=0.000, z=200.505, rpy=(180.000, 0.000, 180.000)
-[INFO] [1773037005.822141579] [dsr01.execute_packing_server]: station_retreat_pose: x=400.000, y=0.000, z=250.000
-[INFO] [1773037005.822301216] [dsr01.execute_packing_server]: ===== StagePlan Debug End =====

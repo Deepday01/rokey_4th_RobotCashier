@@ -29,6 +29,9 @@ gripper = RG(GRIPPER_NAME, TOOLCHARGER_IP, TOOLCHARGER_PORT)
 
 
 class RobotController:
+    def __init__(self, logger=None):
+        self.logger = logger
+        
     def initialize(self) -> None:
         from DSR_ROBOT2 import (
             ROBOT_MODE_AUTONOMOUS,
@@ -51,25 +54,54 @@ class RobotController:
         mwait()
 
     # movel 절대좌표 이동
-    def move_to_pose(self, pose) -> None:
-        from DSR_ROBOT2 import movel, mwait, posx
+    def move_to_pose(self, pose: Pose3D, ref=None, log: bool = False) -> None:
+        from DSR_ROBOT2 import movel, mwait, posx, DR_BASE, DR_TOOL
+
+        if ref is None:
+            ref = DR_BASE
+
+        ref_name = "DR_TOOL" if ref == DR_TOOL else "DR_BASE"
+
+        if log and self.logger is not None:
+            self.logger.info(
+                "[ROBOT_MOVE] movel(abs) -> "
+                f"ref={ref_name}, "
+                f"x={pose.x:.3f}, y={pose.y:.3f}, z={pose.z:.3f}, "
+                f"roll={pose.roll:.3f}, pitch={pose.pitch:.3f}, yaw={pose.yaw:.3f}"
+            )
 
         movel(
             posx([pose.x, pose.y, pose.z, pose.roll, pose.pitch, pose.yaw]),
             vel=VELOCITY,
             acc=ACC,
+            ref=ref,
         )
         mwait()
 
+
     # movel 상대좌표 이동
-    def move_to_relative_pose(self, pose) -> None:
-        from DSR_ROBOT2 import movel, mwait, posx,  DR_MV_MOD_REL
+    def move_to_relative_pose(self, pose:Pose3D, ref=None, log: bool = False) -> None:
+        from DSR_ROBOT2 import movel, mwait, posx, DR_BASE, DR_TOOL, DR_MV_MOD_REL
+
+        if ref is None:
+            ref = DR_BASE
+
+        ref_name = "DR_TOOL" if ref == DR_TOOL else "DR_BASE"
+
+        if log and self.logger is not None:
+            self.logger.info(
+                "[ROBOT_MOVE] movel(rel) -> "
+                f"ref={ref_name}, "
+                f"x={pose.x:.3f}, y={pose.y:.3f}, z={pose.z:.3f}, "
+                f"roll={pose.roll:.3f}, pitch={pose.pitch:.3f}, yaw={pose.yaw:.3f}"
+            )
 
         movel(
             posx([pose.x, pose.y, pose.z, pose.roll, pose.pitch, pose.yaw]),
             vel=VELOCITY,
             acc=ACC,
-            mod=DR_MV_MOD_REL
+            ref=ref,
+            mod=DR_MV_MOD_REL,
         )
         mwait()
 
@@ -80,22 +112,6 @@ class RobotController:
         movej(movej_list, vel=VELOCITY, acc=ACC, mod=DR_MV_MOD_REL)
         mwait()
 
-    
-    def safe_rise(self) -> None:
-        from DSR_ROBOT2 import get_current_posx, mwait
-
-        current, _ = get_current_posx()
-        self.move_to_pose(
-            type("Pose", (), {
-                "x": current[0],
-                "y": current[1],
-                "z": SAFE_Z,
-                "roll": current[3],
-                "pitch": current[4],
-                "yaw": current[5],
-            })()
-        )
-        mwait()
 
     def open_gripper(self) -> None:
         from DSR_ROBOT2 import mwait
@@ -121,37 +137,130 @@ class RobotController:
             if time.time() - started > GRIPPER_TIMEOUT_SEC:
                 raise RuntimeError("gripper open timeout")
             time.sleep(POLL_INTERVAL_SEC)
-        mwait()
+        mwait() 
 
-    # def rotate_object(self, object_pose, rotate_direction):
-    def rotate_object(self):
+    def rotate_object(self, step: AlignStep, item: ItemState):
         from DSR_ROBOT2 import get_current_posx
-        # # # TODO : 여기서부터
-        # # if rotate_direction == 'x_axis':
-        # #     self.move_to_pose()
-        # # if rotate_direction == 'y_axis':
-        # #     self.move_to_pose()
-        # # if rotate_direction == 'z_axis':
-        # #     pass
 
-        # # 45도 잡기 시작
+        #====================================테스트 시작====================================
+
+        #====================================테스트 종료====================================
+
+
+
+        if step.ry_deg == 90:
+            self.logger.info(f"====================ry 90도 회전 수행====================")
+
+            # ====================ry 90도 회전 수행====================
+            # 45도 잡기 수행====================
+            self.open_gripper()
+            self.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 200, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기전 경유 지점 
+
+            # 잡는 위치 1차 이동('바닥 높이 + 물체 뎁스/2)
+            object_grap_z = 182.977 + item.size.depth/2
+            self.logger.info(f"step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: {item.size.depth/2}")
+            self.move_to_pose(Pose3D(91.723, -582.756, object_grap_z, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기
+
+            # 잡는 위치 2차 이동(그리퍼 좌표계로 그리퍼 옵셋만큼 이동) # 그리퍼 옵셋: 그리퍼 완전 닫힌 높이 - 그리퍼 물체 잡은 높이
+            griper_offset = get_gripper_depth_offset(item.size.height)
+            # self.logger.info(f"item.size.height 확인: {item.size.height}")
+            # self.logger.info(f"griper_offset 확인: {griper_offset}")
+            # self.move_to_relative_pose(Pose3D(0, 0, griper_offset, 0,0,0),ref=1)
+            self.move_to_relative_pose(Pose3D(0, 0, griper_offset, 0,0,0), ref=1)
+
+            # 잡기 수행
+            self.close_gripper(width_mm = item.size.height)
+            self.logger.info(f"step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: {item.size.height}")
+
+
+            # 올라오기
+            self.move_to_relative_pose(Pose3D(0, 0, 200, 0,0,0))
+
+
+
+
+            # 135도 놓기 시작====================
+            self.move_to_pose(Pose3D(-148.29, -579.322, 8.418 + 200, 178.483, -132.87, 87.051)) # y축 회전 135도 놓기전 경우 지점
+            # 아이템 size 스왑=========
+            width = item.size.width
+            depth = item.size.depth
+            item.size.width = depth
+            item.size.depth = width
+
+            # 1차 놓는 위치 이동('바닥 높이 + 물체 뎁스/2)
+            object_lay_approch_z = 8.418 + item.size.depth/2
+            self.logger.info(f"step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: {item.size.depth/2}")
+            self.move_to_pose(Pose3D(-148.29, -579.322, object_lay_approch_z, 178.483, -132.87, 87.051)) # y축 회전 135도 접근
+
+            # 그리퍼 옵셋 이동
+            griper_offset = get_gripper_depth_offset(item.size.height)
+            self.move_to_relative_pose(Pose3D(0, 0, griper_offset, 0,0,0), ref=1)
+            self.logger.info(f"step.ry_deg  > 135도 놓기  > griper_offset 확인: {griper_offset}")
+
+
+            # 그리퍼 오픈
+            self.open_gripper()
+
+            # 올라오기
+            self.move_to_relative_pose(Pose3D(0, 0, 200, 0,0,0))
+
+        elif step.rz_deg == 90:
+            self.logger.info(f" ====================rz 90도 회전 수행====================")
+
+            # ====================rz 90도 회전 수행====================
+            self.open_gripper()
+            self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537)) # 경유 지점
+
+            # 물체 잡기('바닥 높이 + 물체 뎁스/2 - 그리퍼 옵셋)
+            griper_offset = get_gripper_depth_offset(item.size.height)
+            object_grap_z = 143.232 + item.size.depth/2 - griper_offset
+            self.logger.info(f"step.rz_deg  > 잡기 > item.size.depth/2 확인: {item.size.depth/2}")
+            self.logger.info(f"step.rz_deg  > 잡기 > griper_offset 확인: {griper_offset}")
+
+            self.move_to_pose(Pose3D(-62.725, -581.752, object_grap_z, 101.222, 178.691, 11.537)) # 물체 중심 높이까지 이동
+
+            # 물체 잡기
+            self.close_gripper(width_mm = item.size.height)
+
+            # 올라오기 > rz 90도 회전 
+            object_grap_z = 145.745 + item.size.depth/2 - griper_offset
+            self.logger.info(f"step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: {item.size.depth/2}")
+            self.logger.info(f"step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: {griper_offset}")
+            self.move_to_pose(Pose3D(-45.907, -345.922, object_grap_z +10, 125.195, 179.579, 125.739)) # 10은 물체를 살짝들어 회전시키기 위함
+
+
+            # 아이템 size 스왑=========
+            width = item.size.width
+            height = item.size.height
+            item.size.width = height
+            item.size.height = width
+            
+
+            # 물체 내려 놓기
+            self.move_to_pose(Pose3D(-45.907, -345.922, object_grap_z, 125.195, 179.579, 125.739)) # 물체 중심 높이까지
+
+            # 그리퍼 오픈
+            self.open_gripper()
+
+            # 올라오기
+            self.move_to_relative_pose(Pose3D(0, 0, 200, 0,0,0)) 
+
+        # 45도 잡기 시작
         # current, _ = get_current_posx()
         # self.open_gripper()
-        # self.move_to_pose(Pose3D(91.712, -582.737, 384.288, 177.012, 135.921, 88.244)) # y축 회전 45도 잡기전 경유 지점 
-        # self.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 10, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기
+        # self.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 200, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기전 경유 지점 
+        # self.move_to_pose(Pose3D(91.723, -582.756, 182.977, 176.985, 135.902, 88.212)) # y축 회전 45도 잡기
         # # 10
         # self.close_gripper(width_mm = 40+15) # 기존 + 부착된 그리퍼 너비길이가 합쳐서 15mm 이라 보정
         # # self.close_gripper() 
-        # self.safe_rise() # 안전을 위해 추가
 
 
         # # # 135도 놓기 시작
-        # self.move_to_pose(Pose3D(-152.673, -579.061, 207.891, 179.251, -132.47, 87.477)) # y축 회전 135도 놓기전 경우 지점
-        # self.move_to_pose(Pose3D(-152.678, -579.069, 7.86 + 37.5, 179.252, -132.471, 87.476)) # y축 회전 135도 놓기
+        # self.move_to_pose(Pose3D(-148.29, -579.322, 8.418+200, 178.483, -132.87, 87.051)) # y축 회전 135도 놓기전 경우 지점
+        # self.move_to_pose(Pose3D(-148.29, -579.322, 8.418, 178.483, -132.87, 87.051)) # y축 회전 135도 놓기
         # # 37.5
 
         # self.open_gripper()
-        # self.safe_rise()
 
         # current, _ = get_current_posx()
         # self.move_to_pose(Pose3D(286.7, 117, 546-60 +100,current[3],current[4], 41)) 
@@ -166,11 +275,10 @@ class RobotController:
 
         ########################################### 테스트 시작 ###########################################
         # self.move_ready()
-
-
+        # self.close_gripper()
         
         # 스캔위치
-        self.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90)) 
+        # self.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90)) 
 
 
         # 우측 상단
@@ -190,15 +298,14 @@ class RobotController:
         # 인섹트
         # self.move_to_pose(Pose3D(158.9, 152.5, 280, 90, 180, 90)) 
         # 이클립스
-        # self.move_to_pose(Pose3D(250.6, 277.1, 280, 90, 180, 90)) 
+        # self.move_to_pose(Pose3D(250.600, 277.100, 372.000, 90.000, 180.000, 90.000)) 
 
 
 
-
+        
 
         # self.open_gripper()
         # self.close_gripper(width_mm = 32+10+2)
-        # self.safe_rise()
 
 
         
@@ -254,7 +361,7 @@ class ExecutePackingServer(Node):
     def __init__(self):
         super().__init__("execute_packing_server", namespace=ROBOT_ID)
         self._busy = False
-        self.robot = RobotController()
+        self.robot = RobotController(logger=self.get_logger())
         self._server = ActionServer(
             self,
             ExecutePacking,
@@ -280,65 +387,104 @@ class ExecutePackingServer(Node):
     # 초기 오브젝트 픽
     def excute_init_object_pick(self, packingPlan: PackingPlan) -> None:
         from DSR_ROBOT2 import get_current_posx
+        self.get_logger().info(f'')
 
-        pick_plan = packingPlan.init_object_pick_plan
 
-        griper_depth_offset = get_gripper_depth_offset(packingPlan.item.size.height)
+        item = packingPlan.item
+
         # 잡는 높이 조정(물체 중심 z - 그리퍼 너비에 따른 뎁스 오프셋값)
-        pick_z = pick_plan.pick_pose.z - griper_depth_offset 
-        
-        pick_z = pick_plan.pick_pose.z - griper_depth_offset
+        griper_depth_offset = get_gripper_depth_offset(packingPlan.item.size.height)
+        pick_z = item.pose.z - griper_depth_offset
 
-        self.get_logger().info(
-            f"잡는 높이 조정(물체 중심 z - 그리퍼 너비에 따른 뎁스 오프셋값) "
-            f"{pick_plan.pick_pose.z:.3f} - {griper_depth_offset:.3f} = {pick_z:.3f}"
-        )
-            
         
-        # 로봇 시작
-        self.robot.move_to_pose(pick_plan.pick_approach_pose)
+        # 로봇 물체 접근
+        self.robot.move_to_pose(
+            Pose3D(
+                x=item.pose.x,
+                y=item.pose.y,
+                z=pick_z + 200,
+                roll = 90,
+                pitch = 180,
+                yaw = 90,
+            )
+        )
         self.robot.open_gripper()
-
-        # yaw 만큼 회전
-        self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, pick_plan.pick_pose.yaw])
-
+   
         # 그대로 아래로 내려가기
-        cur_pos, _ = get_current_posx()
-        griper_pick_pose = Pose3D(
-            x=pick_plan.pick_pose.x,
-            y=pick_plan.pick_pose.y,
-            z=pick_z,
-            roll = cur_pos[3],
-            pitch = cur_pos[4],
-            yaw = cur_pos[5],
-        )
-        self.robot.move_to_pose(griper_pick_pose)
+        self.robot.move_to_relative_pose(Pose3D(0,0,-200,0,0,0))
 
-        # 잡기
-        self.robot.close_gripper()
+        self.get_logger().info(f"물체 요 확인: {item.pose.yaw}")
+        # yaw 만큼 회전
+        self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, item.pose.yaw -90])
+
+        # # 잡기
+        self.robot.close_gripper(width_mm=item.size.height)
+
         # 그대로 올라오기
         self.robot.move_to_relative_pose(Pose3D(x=0,y=0,z=200,roll=0,pitch=0,yaw=0))
 
+        # 물체 정렬 
+        yaw = item.pose.yaw
+        self.get_logger().info(f"물체 정렬 yaw 확인: {yaw}")
+        self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, -yaw])
+        item.pose.yaw -= yaw
+        self.get_logger().info(f"packingPlan.item.pose.yaw 확인: {packingPlan.item.pose.yaw}")
+
 
   
-    # 회전 스테이션
-    def align_object(self, plan, align_plan) -> None:
-       
-        # 테스트 코드 
-        self.robot.rotate_object()
-            
+    # 회전 스테이지
+    def align_object(self, packingPlan: PackingPlan) -> None:
+        from DSR_ROBOT2 import get_current_posx 
+        # self.robot.move_ready()
+        # self.robot.move_to_pose(Pose3D(-45.907, -345.922, 145.745, 125.195, 179.579, 125.739)) # 경유 지점
+        # return
+    
+        # self.robot.move_to_relative_pose(Pose3D(x=0,y=0,z=200,roll=0,pitch=0,yaw=0))
+        # self.robot.close_gripper()
+        # self.robot.move_to_pose(Pose3D(91.723, -582.756, 182.977 , 176.985, 135.902, 88.212)) # y축 회전 45도 잡기전 경유 지점 
+        # self.robot.move_to_pose(Pose3D(91.723, -582.756, 182.977 + 7.5 , 176.985, 135.902, 88.212)) # y축 회전 45도 잡기전 경유 지점 
+        # return
 
-        # if not align_plan.required:
-        #     return
-        # for step in align_plan.steps:
-        #     self.robot.rotate_object(
-        #         rx_deg=step.rx_deg,
-        #         ry_deg=step.ry_deg,
-        #         rz_deg=step.rz_deg,
-        #     )
 
+
+        align_plan = packingPlan.align_plan
+        item_size = packingPlan.item.size
+
+        if not align_plan.required:
+            return
+        else:
+            # ============회전 스테이지에 내려놓기============
+            # 경유 지점 이동
+            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537))
+            # 물체 좌표에 내려 놓기 
+            # - 내려 놓는 높이 계산 = 바닥 높이 + 물체 뎁스/2 - 그리퍼 옵셋(그리퍼 완전 닫힌 높이 - 그리퍼 물체 잡은 높이)
+            griper_offset = get_gripper_depth_offset(item_size.height)
+            pick_z = 143.232 + item_size.depth/2 - griper_offset
+            self.robot.move_to_pose(Pose3D(-62.725, -581.752, pick_z, 101.222, 178.691, 11.537))
+
+            # 그리퍼 열기
+            self.robot.open_gripper()
+
+            # 올라오기
+            self.robot.move_to_relative_pose(Pose3D(0,0,200,0,0,0))
+
+            # ============회전 수행============
+            for step in align_plan.steps:
+                self.get_logger().info(f'회전 수행 > step : {step.rx_deg}, {step.ry_deg}, {step.rz_deg}')
+                self.robot.rotate_object(step , packingPlan.item)
+
+
+
+            # ============물체 잡고 들어올리기============
+            # 물체 잡기
+
+
+
+
+        
     # 박스에 놓기
-    def pick_and_place_to_box(self, task, box_plan : BoxPlan) -> None:
+    def pick_and_place_to_box(self, packingPlan: PackingPlan) -> None:
+        box_plan = packingPlan.BoxPlan
         self.robot.move_to_pose(box_plan.station_pick_approach_pose)
         self.robot.move_to_pose(box_plan.station_pick_pose)
         self.robot.close_gripper()
@@ -357,36 +503,47 @@ class ExecutePackingServer(Node):
         self._busy = True
         result = ExecutePacking.Result()
         try:
+
+            # 클라이언트 요청 받음
             request = goal_handle.request
-            PackingPlanList = make_packing_plan_list(
+            self.get_logger().info(f"클라이언트 데이터 수신 완료")
+            # 계획
+            self.get_logger().info(f"계획 작성 시작")
+
+            packingPlanList: PackingPlanList = make_packing_plan_list(
                 pick_items=request.pick_items, # 클라이언트에서 정의된 접근 변수값 // pick_items은 인터페이스의 item 이다
                 place_items=request.place_items,
+                logger=self.get_logger
             )
+            self.get_logger().info(f"계획 작성 완료")
 
-            # relase 코드
-            # self.robot.move_ready()
+
+            self.get_logger().info(f"초기 위치로 이동")
+            self.robot.move_ready()
             execute_plan_with_callbacks(
-                planList=PackingPlanList,
+                planList=packingPlanList,
                 excute_init_object_pick=self.excute_init_object_pick,
-                align_object=self.align_object,
+                excute_align_object=self.align_object,
                 execute_pick_and_place_to_box=self.pick_and_place_to_box,
             )
-
+            
+            self.get_logger().info(f"패킹 작업 완료")
             goal_handle.succeed()
             result.success = True
             return result
         except Exception as e:
 
-            # 디버깅
-            self.get_logger().error(f"[TASK FAILED] {type(e).__name__}: {e}")
+            self.get_logger().error(f"[익셉션 발생] {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
 
 
+            self.get_logger().info(f"패킹 작업 실패")
             goal_handle.abort()
             result.success = False
             return result
         finally:
+            self.get_logger().info(f"안 바뻐짐")
             self._busy = False
 
 
