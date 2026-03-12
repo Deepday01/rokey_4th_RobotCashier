@@ -1,15 +1,12 @@
 string item_id
 string name
-
 int32 width
 int32 depth
 int32 height
 int32 durability
-
-float32 x
-float32 y
-float32 z
-
-float32 roll
-float32 pitch
-float32 yaw
+float64 x
+float64 y
+float64 z
+float64 roll
+float64 pitch
+float64 yaw

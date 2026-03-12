@@ -6,7 +6,7 @@ import json
 import math
 import time
 import traceback
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Set
 from collections import defaultdict
 
 import cv2
@@ -34,30 +34,34 @@ class VisionScanItemsActionServer(Node):
     def __init__(self):
         super().__init__("vision_scan_items_action_server")
 
-        default_model_path = os.path.expanduser("~/Downloads/best.pt")
+        default_model_path = os.path.expanduser("~/Downloads/best_fin.pt")
         default_specs_path = os.path.expanduser(
             "~/rokey_4th_RobotCashier/src/cashier_vision/apriltag_pose_py/config/item_specs.json"
         )
 
         params = {
+            # camera
             "color_topic": "/camera/camera/color/image_raw",
             "depth_topic": "/camera/camera/aligned_depth_to_color/image_raw",
             "use_compressed": False,
             "debug_image_topic": "/vision/debug_image",
             "debug_timer_hz": 5.0,
             "show_cv": True,
-            "cv_window_width": 1600,
-            "cv_window_height": 1000,
+            "cv_window_width": 1280,
+            "cv_window_height": 720,
 
+            # yolo
             "model_path": default_model_path,
-            "conf_thres": 0.45,
+            "conf_thres": 0.15,
             "iou_thres": 0.45,
             "max_det": 20,
-            "imgsz": 1280,
+            "imgsz": 960,
 
-            "scan_duration_sec": 3.0,
+            # action
+            "scan_duration_sec": 4.0,
             "feedback_hz": 5.0,
 
+            # apriltag / homography
             "tag_family": "tag36h11",
             "tag_size_m": 0.05,
             "camera_frame_override": "",
@@ -66,17 +70,21 @@ class VisionScanItemsActionServer(Node):
             "nthreads": 2,
             "refine_edges": True,
 
+            # depth
             "depth_value_scale_to_m": 0.001,
             "depth_kernel": 2,
 
+            # yaw
             "yaw_history_size": 10,
             "yaw_bin_deg": 5.0,
             "yaw_min_aspect_ratio": 1.15,
-            "yaw_hold_frames": 5,
+            "yaw_hold_frames": 8,
 
+            # roi / track
             "roi_pad_px": 6,
             "track_grid_mm": 10.0,
 
+            # object mask
             "yellow_h_min": 18,
             "yellow_s_min": 40,
             "yellow_v_min": 40,
@@ -84,9 +92,45 @@ class VisionScanItemsActionServer(Node):
             "yellow_s_max": 255,
             "yellow_v_max": 255,
 
-            "tag_world_points_json": '{"0":[0,0], "2":[360,0], "6":[0,370], "8":[360,370]}',
+            # display: raw 느낌 유지
+            "display_enhance": False,
+            "display_contrast_alpha": 1.0,
+            "display_brightness_beta": 0,
+            "display_sharpen": False,
+
+            # draw
+            "label_font_scale": 0.33,
+            "label_thickness": 1,
+            "box_thickness": 2,
+            "obb_thickness": 2,
+            "text_bg": True,
+
+            # box filter
+            "dup_iou_thres": 0.30,
+            "small_box_area_ratio": 0.65,
+            "min_box_area_px": 2500,
+
+            # workspace
+            "workspace_size_mm": 410.0,
+
+            # tag layout
+            "tag_world_points_json": '{"1":[0,0], "6":[410,0], "2":[0,410], "8":[410,410]}',
+
+            # workspace(mm) -> robot(mm)
+            "robot_corner_points_json": '''
+            {
+                "lt": [493.0, 325.0],
+                "rt": [493.0, -75.0],
+                "lb": [93.0, 325.0],
+                "rb": [93.0, -75.0]
+            }
+            ''',
+
             "item_specs_json_path": default_specs_path,
             "class_name_map_json": "{}",
+
+            # qr: 화면 표시만
+            "enable_fullframe_qr": True,
 
             # debug draw flags
             "draw_tag_boxes": False,
@@ -97,7 +141,6 @@ class VisionScanItemsActionServer(Node):
             "draw_z": True,
             "draw_yaw": True,
             "draw_spec": False,
-            "draw_qr": False,
             "draw_roi": False,
             "draw_obb": True,
         }
@@ -141,6 +184,24 @@ class VisionScanItemsActionServer(Node):
         self.yellow_s_max = int(self.yellow_s_max)
         self.yellow_v_max = int(self.yellow_v_max)
 
+        self.display_enhance = bool(self.display_enhance)
+        self.display_contrast_alpha = float(self.display_contrast_alpha)
+        self.display_brightness_beta = int(self.display_brightness_beta)
+        self.display_sharpen = bool(self.display_sharpen)
+
+        self.label_font_scale = float(self.label_font_scale)
+        self.label_thickness = int(self.label_thickness)
+        self.box_thickness = int(self.box_thickness)
+        self.obb_thickness = int(self.obb_thickness)
+        self.text_bg = bool(self.text_bg)
+
+        self.dup_iou_thres = float(self.dup_iou_thres)
+        self.small_box_area_ratio = float(self.small_box_area_ratio)
+        self.min_box_area_px = int(self.min_box_area_px)
+
+        self.workspace_size_mm = float(self.workspace_size_mm)
+        self.enable_fullframe_qr = bool(self.enable_fullframe_qr)
+
         self.draw_tag_boxes = bool(self.draw_tag_boxes)
         self.draw_workspace_text = bool(self.draw_workspace_text)
         self.draw_center = bool(self.draw_center)
@@ -149,7 +210,6 @@ class VisionScanItemsActionServer(Node):
         self.draw_z = bool(self.draw_z)
         self.draw_yaw = bool(self.draw_yaw)
         self.draw_spec = bool(self.draw_spec)
-        self.draw_qr = bool(self.draw_qr)
         self.draw_roi = bool(self.draw_roi)
         self.draw_obb = bool(self.draw_obb)
 
@@ -159,10 +219,17 @@ class VisionScanItemsActionServer(Node):
             int(k): (float(v[0]), float(v[1]))
             for k, v in json.loads(self.tag_world_points_json).items()
         }
+
+        self.robot_corner_points = {
+            str(k): (float(v[0]), float(v[1]))
+            for k, v in json.loads(self.robot_corner_points_json).items()
+        }
+
         self.class_name_map = {
             int(k): str(v)
             for k, v in json.loads(self.class_name_map_json).items()
         }
+
         self.item_specs = self.load_item_specs(self.item_specs_json_path)
 
         self.bridge = CvBridge()
@@ -174,6 +241,30 @@ class VisionScanItemsActionServer(Node):
             self.get_logger().error(f"Failed to load YOLO model: {e}")
             raise
 
+        self.item_order = [
+            "halls",
+            "insect",
+            "caramel",
+            "candy",
+            "cream",
+            "eclipse_red",
+            "eclipse_gre",
+        ]
+
+        self.qr_map = {
+            "https://m.site.naver.com/20lZW": "halls",
+            "https://m.site.naver.com/20m1A": "insect",
+            "https://m.site.naver.com/20suF": "caramel",
+            "https://m.site.naver.com/20svK": "candy",
+            "https://m.site.naver.com/20swh": "caramel",
+            "https://m.site.naver.com/20swH": "cream",
+            "https://m.site.naver.com/20syN": "eclipse_red",
+            "https://m.site.naver.com/20y2j": "eclipse_gre",
+        }
+
+        self.latest_fullframe_qr_raws: List[str] = []
+        self.latest_fullframe_qr_names: Set[str] = set()
+
         self.detector = Detector(
             families=self.tag_family,
             nthreads=int(self.nthreads),
@@ -181,6 +272,8 @@ class VisionScanItemsActionServer(Node):
             quad_sigma=float(self.sigma),
             refine_edges=bool(self.refine_edges),
         )
+
+        self.H_ws_to_robot = self.compute_workspace_to_robot_homography()
 
         self.latest_color = None
         self.latest_color_stamp = None
@@ -229,12 +322,77 @@ class VisionScanItemsActionServer(Node):
         self.get_logger().info(f"Show CV: {self.show_cv}")
         self.get_logger().info(f"conf_thres: {self.conf_thres}")
         self.get_logger().info(f"AprilTag world map: {self.tag_world_points}")
+        self.get_logger().info(f"Robot corner points: {self.robot_corner_points}")
+        self.get_logger().info(f"Workspace->Robot H:\n{self.H_ws_to_robot}")
         self.get_logger().info(f"Item specs path: {self.item_specs_json_path}")
+        self.get_logger().info(f"QR full-frame enabled: {self.enable_fullframe_qr}")
+        self.get_logger().info(f"QR map count: {len(self.qr_map)}")
+
+        test_center = self.workspace_to_robot(
+            self.workspace_size_mm / 2.0,
+            self.workspace_size_mm / 2.0
+        )
+        if test_center is not None:
+            self.get_logger().info(f"Predicted robot center from corners: {test_center}")
+
         self.get_logger().info("VisionScanItemsActionServer ready.")
 
-    # =====================================================
-    # JSON spec helpers
-    # =====================================================
+    def to_int_field(self, value, default=0):
+        try:
+            return int(round(float(value)))
+        except Exception:
+            return int(default)
+
+    def enhance_for_display(self, img):
+        if img is None:
+            return img
+
+        out = img.copy()
+
+        if self.display_enhance:
+            out = cv2.convertScaleAbs(
+                out,
+                alpha=self.display_contrast_alpha,
+                beta=self.display_brightness_beta
+            )
+
+        if self.display_sharpen:
+            blur = cv2.GaussianBlur(out, (0, 0), 1.0)
+            out = cv2.addWeighted(out, 1.22, blur, -0.22, 0)
+
+        return out
+
+    def draw_text_with_bg(self, img, text, org, color=(0, 255, 0)):
+        if not text:
+            return
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = self.label_font_scale
+        thickness = self.label_thickness
+
+        (tw, th), baseline = cv2.getTextSize(text, font, scale, thickness)
+        x, y = org
+
+        x = int(clamp(x, 0, max(0, img.shape[1] - tw - 4)))
+        y = int(clamp(y, th + 4, img.shape[0] - 4))
+
+        if self.text_bg:
+            cv2.rectangle(
+                img,
+                (x - 2, y - th - 2),
+                (x + tw + 2, y + baseline + 2),
+                (0, 0, 0),
+                -1
+            )
+
+        cv2.putText(img, text, (x, y), font, scale, color, thickness, cv2.LINE_AA)
+
+    def _log_missing_once(self, text: str):
+        now = time.time()
+        if now - self._last_missing_log_t > 1.0:
+            self.get_logger().warn(text)
+            self._last_missing_log_t = now
+
     def load_item_specs(self, json_path: str) -> Dict[str, dict]:
         try:
             with open(json_path, "r", encoding="utf-8") as f:
@@ -248,9 +406,9 @@ class VisionScanItemsActionServer(Node):
             for k, v in data.items():
                 if isinstance(k, str) and isinstance(v, dict):
                     out[k.strip()] = {
-                        "width": float(v.get("width", 0.0)),
-                        "depth": float(v.get("depth", 0.0)),
-                        "height": float(v.get("height", 0.0)),
+                        "width": int(round(float(v.get("width", 0)))),
+                        "depth": int(round(float(v.get("depth", 0)))),
+                        "height": int(round(float(v.get("height", 0)))),
                         "durability": int(v.get("durability", 0)),
                     }
 
@@ -284,9 +442,6 @@ class VisionScanItemsActionServer(Node):
 
         return {}
 
-    # =====================================================
-    # Action
-    # =====================================================
     def goal_callback(self, goal_request):
         if not goal_request.start_vision:
             self.get_logger().warn("Rejected goal: start_vision == False")
@@ -358,9 +513,9 @@ class VisionScanItemsActionServer(Node):
                     item.item_id = f"{item.name}_{name_index[item.name]}"
 
                 spec = self.get_item_spec(item.item_id, item.name)
-                item.width = float(spec.get("width", 0.0))
-                item.depth = float(spec.get("depth", 0.0))
-                item.height = float(spec.get("height", 0.0))
+                item.width = int(round(spec.get("width", 0)))
+                item.depth = int(round(spec.get("depth", 0)))
+                item.height = int(round(spec.get("height", 0)))
                 item.durability = int(spec.get("durability", 0))
 
             result.success = len(final_items) > 0
@@ -380,9 +535,6 @@ class VisionScanItemsActionServer(Node):
         finally:
             self.scan_in_progress = False
 
-    # =====================================================
-    # Timer / subscriptions
-    # =====================================================
     def timer_debug_callback(self):
         if self.scan_in_progress:
             return
@@ -417,6 +569,140 @@ class VisionScanItemsActionServer(Node):
             self.get_logger().error(f"Compressed color conversion failed: {e}")
 
     # =====================================================
+    # QR helpers (full-frame only, display only)
+    # =====================================================
+    def normalize_qr_text(self, raw: str) -> str:
+        if raw is None:
+            return ""
+        return raw.strip()
+
+    def map_qr_to_item_name(self, raw: str) -> str:
+        raw = self.normalize_qr_text(raw)
+        if not raw:
+            return ""
+
+        raw = raw.rstrip("/")
+        normalized_map = {k.rstrip("/"): v for k, v in self.qr_map.items()}
+        return normalized_map.get(raw, "")
+
+    def decode_qr_candidates(self, img) -> List[str]:
+        decoded = set()
+
+        if img is None or img.size == 0:
+            return []
+
+        candidates = []
+
+        # 1) 원본
+        candidates.append(img)
+
+        # 2) grayscale
+        gray = None
+        try:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            candidates.append(gray)
+        except Exception:
+            pass
+
+        # 3) 확대본
+        try:
+            big = cv2.resize(img, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+            candidates.append(big)
+        except Exception:
+            pass
+
+        if gray is not None:
+            try:
+                gray_big = cv2.resize(gray, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+                candidates.append(gray_big)
+            except Exception:
+                pass
+
+            try:
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+                gray_clahe = clahe.apply(gray)
+                candidates.append(gray_clahe)
+
+                gray_clahe_big = cv2.resize(
+                    gray_clahe, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC
+                )
+                candidates.append(gray_clahe_big)
+            except Exception:
+                pass
+
+            try:
+                _, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                candidates.append(otsu)
+
+                otsu_big = cv2.resize(otsu, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+                candidates.append(otsu_big)
+            except Exception:
+                pass
+
+            try:
+                adaptive = cv2.adaptiveThreshold(
+                    gray,
+                    255,
+                    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                    cv2.THRESH_BINARY,
+                    11,
+                    2,
+                )
+                candidates.append(adaptive)
+
+                adaptive_big = cv2.resize(
+                    adaptive, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC
+                )
+                candidates.append(adaptive_big)
+            except Exception:
+                pass
+
+        # 너무 많은 중복 후보 방지
+        unique_candidates = []
+        seen = set()
+
+        for c in candidates:
+            if c is None or c.size == 0:
+                continue
+
+            try:
+                shape_key = (c.shape[0], c.shape[1], 1 if len(c.shape) == 2 else c.shape[2])
+            except Exception:
+                continue
+
+            if shape_key not in seen:
+                unique_candidates.append(c)
+                seen.add(shape_key)
+
+        # pyzbar만 사용
+        for c in unique_candidates:
+            try:
+                results = qr_decode(c)
+            except Exception:
+                results = []
+
+            for r in results:
+                try:
+                    raw = r.data.decode("utf-8", errors="ignore").strip()
+                    if raw:
+                        decoded.add(raw)
+                except Exception:
+                    pass
+
+        return list(decoded)
+
+    def decode_qr_multi_stage_fullframe(self, frame) -> Tuple[List[str], Set[str]]:
+        raw_list = self.decode_qr_candidates(frame)
+        name_set = set()
+
+        for raw in raw_list:
+            item_name = self.map_qr_to_item_name(raw)
+            if item_name:
+                name_set.add(item_name)
+
+        return raw_list, name_set
+
+    # =====================================================
     # Main process
     # =====================================================
     def process_latest_frame(self):
@@ -430,33 +716,27 @@ class VisionScanItemsActionServer(Node):
             debug_img = color.copy()
 
             if self.latest_depth is None:
-                cv2.putText(
-                    debug_img,
-                    "depth not ready",
-                    (20, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.9,
-                    (0, 0, 255),
-                    2,
-                )
+                self.draw_text_with_bg(debug_img, "depth not ready", (20, 35), (0, 0, 255))
                 self.latest_items = []
                 self.publish_debug(debug_img, stamp)
                 return
 
             depth = self.latest_depth.copy()
+
+            # 전체 프레임 QR: 화면 표시용만 사용
+            if self.enable_fullframe_qr:
+                fullframe_qr_raws, fullframe_qr_names = self.decode_qr_multi_stage_fullframe(color)
+            else:
+                fullframe_qr_raws, fullframe_qr_names = [], set()
+
+            self.latest_fullframe_qr_raws = fullframe_qr_raws
+            self.latest_fullframe_qr_names = fullframe_qr_names
+
             H_img_to_ws, tag_boxes = self.compute_workspace_homography(color, debug_img)
-            workspace_ready = H_img_to_ws is not None
+            workspace_ready = H_img_to_ws is not None and self.H_ws_to_robot is not None
 
             if not workspace_ready:
-                cv2.putText(
-                    debug_img,
-                    "Workspace homography not ready (need >=4 mapped tags)",
-                    (20, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.75,
-                    (0, 0, 255),
-                    2,
-                )
+                self.draw_text_with_bg(debug_img, "Workspace/Robot homography not ready", (20, 35), (0, 0, 255))
 
             results = self.model.predict(
                 source=color,
@@ -468,6 +748,7 @@ class VisionScanItemsActionServer(Node):
             )
 
             items_with_score: List[Tuple[float, Item, str]] = []
+
             if not results:
                 self.latest_items = []
                 self.publish_debug(debug_img, stamp)
@@ -491,6 +772,8 @@ class VisionScanItemsActionServer(Node):
                 y2 = clamp(y2, 0, color.shape[0] - 1)
                 if x2 > x1 and y2 > y1:
                     all_boxes.append((box, x1, y1, x2, y2))
+
+            all_boxes = self.filter_duplicate_and_small_boxes(all_boxes)
 
             for box, x1, y1, x2, y2 in all_boxes:
                 try:
@@ -527,25 +810,31 @@ class VisionScanItemsActionServer(Node):
                         ws_center = self.transform_point(H_img_to_ws, (cx, cy))
                         if ws_center is None:
                             continue
-                        x_mm, y_mm = ws_center
+
+                        x_ws, y_ws = ws_center
+                        robot_xy = self.workspace_to_robot(x_ws, y_ws)
+                        if robot_xy is None:
+                            continue
+
+                        x_mm, y_mm = robot_xy
                     else:
+                        x_ws, y_ws = 0.0, 0.0
                         x_mm, y_mm = 0.0, 0.0
 
                     item_id = cls_name
-                    track_key = self.make_track_key("", cls_name, x_mm, y_mm)
+                    track_key = self.make_track_key("", cls_name, x_ws, y_ws)
                     spec = self.get_item_spec(item_id, cls_name)
 
                     yaw_deg, obb_ws = None, None
-                    masked_roi_for_qr = roi
+
+                    other_boxes = [
+                        (ox1, oy1, ox2, oy2)
+                        for _, ox1, oy1, ox2, oy2 in all_boxes
+                        if not (ox1 == x1 and oy1 == y1 and ox2 == x2 and oy2 == y2)
+                    ]
 
                     if workspace_ready:
-                        other_boxes = [
-                            (ox1, oy1, ox2, oy2)
-                            for _, ox1, oy1, ox2, oy2 in all_boxes
-                            if not (ox1 == x1 and oy1 == y1 and ox2 == x2 and oy2 == y2)
-                        ]
-
-                        yaw_deg, obb_ws, masked_roi_for_qr = self.estimate_yaw_deg_from_roi(
+                        yaw_deg, obb_ws, _ = self.estimate_yaw_deg_from_roi_ws(
                             roi_bgr=roi,
                             roi_origin_xy=(rx1, ry1),
                             H_img_to_ws=H_img_to_ws,
@@ -553,15 +842,12 @@ class VisionScanItemsActionServer(Node):
                             return_masked_roi=True,
                         )
                     else:
-                        yaw_deg, obb_ws, masked_roi_for_qr = None, None, roi
-
-                    qr_text = self.decode_qr_from_roi(masked_roi_for_qr)
-                    if qr_text:
-                        item_id = qr_text.strip()
-                        track_key = f"qr:{item_id}"
-                        spec = self.get_item_spec(item_id, cls_name)
-                    else:
-                        qr_text = ""
+                        yaw_deg, _ = self.estimate_yaw_deg_from_roi_img(
+                            roi_bgr=roi,
+                            other_boxes=other_boxes,
+                            return_masked_roi=True,
+                        )
+                        obb_ws = None
 
                     if yaw_deg is None:
                         miss_cnt = self.last_good_yaw_miss_count[track_key]
@@ -574,12 +860,12 @@ class VisionScanItemsActionServer(Node):
                     item = Item()
                     item.item_id = item_id
                     item.name = cls_name
-                    item.width = float(spec.get("width", 0.0))
-                    item.depth = float(spec.get("depth", 0.0))
-                    item.height = float(spec.get("height", 0.0))
+                    item.width = int(round(spec.get("width", 0)))
+                    item.depth = int(round(spec.get("depth", 0)))
+                    item.height = int(round(spec.get("height", 0)))
                     item.durability = int(spec.get("durability", 0))
-                    item.x = float(x_mm)
-                    item.y = float(y_mm)
+                    item.x = float(round(x_mm, 1))
+                    item.y = float(round(y_mm, 1))
                     item.z = float(z_mm)
                     item.roll = 0.0
                     item.pitch = 0.0
@@ -593,8 +879,11 @@ class VisionScanItemsActionServer(Node):
                         rx1=rx1, ry1=ry1, rx2=rx2, ry2=ry2,
                         cx=cx, cy=cy,
                         cls_name=cls_name,
-                        x_mm=x_mm, y_mm=y_mm, z_mm=z_mm, yaw_deg=yaw_deg,
-                        spec=spec, qr_text=qr_text,
+                        robot_x_mm=x_mm,
+                        robot_y_mm=y_mm,
+                        z_mm=z_mm,
+                        yaw_deg=yaw_deg,
+                        spec=spec,
                         workspace_ready=workspace_ready,
                         H_img_to_ws=H_img_to_ws,
                         obb_ws=obb_ws,
@@ -604,21 +893,28 @@ class VisionScanItemsActionServer(Node):
                     self.get_logger().error(f"box processing failed: {repr(box_e)}")
 
             self.latest_items = items_with_score
+
+            if self.enable_fullframe_qr:
+                ordered_qr_names = [n for n in self.item_order if n in fullframe_qr_names]
+                if len(ordered_qr_names) > 0:
+                    qr_top = f"QR_NOW:{ordered_qr_names[0]}"
+                    qr_color = (0, 255, 255)
+                elif len(fullframe_qr_raws) > 0:
+                    qr_top = "QR_NOW:unknown"
+                    qr_color = (0, 165, 255)
+                else:
+                    qr_top = "QR_NOW:none"
+                    qr_color = (150, 150, 150)
+
+                self.draw_text_with_bg(debug_img, qr_top, (20, 55), qr_color)
+
             self.publish_debug(debug_img, stamp)
 
         except Exception as e:
             now = time.time()
             if self.latest_color is not None:
                 debug_img = self.latest_color.copy()
-                cv2.putText(
-                    debug_img,
-                    f"process error: {type(e).__name__}",
-                    (20, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.8,
-                    (0, 0, 255),
-                    2,
-                )
+                self.draw_text_with_bg(debug_img, f"process error: {type(e).__name__}", (20, 35), (0, 0, 255))
                 self.publish_debug(debug_img, self.latest_color_stamp)
 
             if now - self._last_process_error_t > 1.0:
@@ -633,16 +929,16 @@ class VisionScanItemsActionServer(Node):
         rx1, ry1, rx2, ry2,
         cx, cy,
         cls_name,
-        x_mm, y_mm, z_mm, yaw_deg,
-        spec, qr_text,
+        robot_x_mm, robot_y_mm, z_mm, yaw_deg,
+        spec,
         workspace_ready,
         H_img_to_ws,
         obb_ws,
     ):
-        cv2.rectangle(debug_img, (x1, y1), (x2, y2), (255, 200, 0), 2)
+        cv2.rectangle(debug_img, (x1, y1), (x2, y2), (255, 200, 0), self.box_thickness)
 
         if self.draw_center:
-            cv2.circle(debug_img, (cx, cy), 4, (0, 0, 255), -1)
+            cv2.circle(debug_img, (cx, cy), 3, (0, 0, 255), -1)
 
         if self.draw_roi:
             cv2.rectangle(debug_img, (rx1, ry1), (rx2, ry2), (180, 180, 0), 1)
@@ -655,12 +951,12 @@ class VisionScanItemsActionServer(Node):
                     obb_img.append((int(pi[0]), int(pi[1])))
             if len(obb_img) == 4:
                 for i in range(4):
-                    cv2.line(debug_img, obb_img[i], obb_img[(i + 1) % 4], (0, 0, 255), 2)
+                    cv2.line(debug_img, obb_img[i], obb_img[(i + 1) % 4], (0, 0, 255), self.obb_thickness)
 
         pose_parts = []
         if workspace_ready and self.draw_xy:
-            pose_parts.append(f"x={x_mm:.1f}")
-            pose_parts.append(f"y={y_mm:.1f}")
+            pose_parts.append(f"rx={robot_x_mm:.1f}")
+            pose_parts.append(f"ry={robot_y_mm:.1f}")
         if self.draw_z:
             pose_parts.append(f"z={z_mm:.1f}")
         if self.draw_yaw:
@@ -670,51 +966,24 @@ class VisionScanItemsActionServer(Node):
         text = f"{cls_name}  {pose_text}" if self.draw_label else pose_text
 
         if text:
-            cv2.putText(
-                debug_img,
-                text,
-                (x1, max(20, y1 - 10)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (0, 255, 0),
-                2,
-            )
+            self.draw_text_with_bg(debug_img, text, (x1, max(16, y1 - 6)), (0, 255, 0))
 
-        next_y = y2 + 20
+        next_y = y2 + 16
 
         if self.draw_spec and spec:
-            cv2.putText(
-                debug_img,
-                f"w={float(spec.get('width', 0.0)):.1f} d={float(spec.get('depth', 0.0)):.1f} "
-                f"h={float(spec.get('height', 0.0)):.1f} dur={int(spec.get('durability', 0))}",
-                (x1, min(debug_img.shape[0] - 10, next_y)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.45,
-                (255, 255, 0),
-                1,
+            spec_text = (
+                f"w={float(spec.get('width', 0.0)):.1f} "
+                f"d={float(spec.get('depth', 0.0)):.1f} "
+                f"h={float(spec.get('height', 0.0)):.1f} "
+                f"dur={int(spec.get('durability', 0))}"
             )
-            next_y += 20
-
-        if self.draw_qr and qr_text:
-            cv2.putText(
+            self.draw_text_with_bg(
                 debug_img,
-                f"QR:{qr_text}",
-                (x1, min(debug_img.shape[0] - 10, next_y)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.55,
-                (255, 0, 255),
-                2,
+                spec_text,
+                (x1, min(debug_img.shape[0] - 8, next_y)),
+                (255, 255, 0)
             )
 
-    def _log_missing_once(self, text: str):
-        now = time.time()
-        if now - self._last_missing_log_t > 1.0:
-            self.get_logger().warn(text)
-            self._last_missing_log_t = now
-
-    # =====================================================
-    # AprilTag -> workspace homography
-    # =====================================================
     def compute_workspace_homography(self, color_bgr, debug_img):
         gray = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2GRAY)
         tags = self.detector.detect(gray, estimate_tag_pose=False)
@@ -736,16 +1005,8 @@ class VisionScanItemsActionServer(Node):
                     cv2.line(debug_img, tuple(corners[i]), tuple(corners[(i + 1) % 4]), (0, 255, 0), 2)
 
                 center = tuple(tag.center.astype(int))
-                cv2.circle(debug_img, center, 5, (0, 0, 255), -1)
-                cv2.putText(
-                    debug_img,
-                    f"ID:{tag_id}",
-                    (center[0] + 8, center[1] - 8),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.6,
-                    (255, 0, 0),
-                    2,
-                )
+                cv2.circle(debug_img, center, 4, (0, 0, 255), -1)
+                self.draw_text_with_bg(debug_img, f"ID:{tag_id}", (center[0] + 8, center[1] - 8), (255, 0, 0))
 
             if tag_id in self.tag_world_points:
                 img_pts.append([float(tag.center[0]), float(tag.center[1])])
@@ -753,14 +1014,11 @@ class VisionScanItemsActionServer(Node):
                 ws_pts.append([wx, wy])
 
         if self.draw_workspace_text:
-            cv2.putText(
+            self.draw_text_with_bg(
                 debug_img,
                 f"workspace tags used: {len(img_pts)}",
-                (20, 40),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.75,
-                (0, 255, 0) if len(img_pts) >= 4 else (0, 0, 255),
-                2,
+                (20, 35),
+                (0, 255, 0) if len(img_pts) >= 4 else (0, 0, 255)
             )
 
         if len(img_pts) < 4:
@@ -773,9 +1031,42 @@ class VisionScanItemsActionServer(Node):
         )
         return H, tag_boxes
 
-    # =====================================================
-    # Geometry helpers
-    # =====================================================
+    def compute_workspace_to_robot_homography(self):
+        try:
+            robot = self.robot_corner_points
+
+            ws_pts = np.array([
+                [self.workspace_size_mm, self.workspace_size_mm],
+                [self.workspace_size_mm, 0.0],
+                [0.0, self.workspace_size_mm],
+                [0.0, 0.0],
+            ], dtype=np.float32)
+
+            robot_pts = np.array([
+                [float(robot["lt"][0]), float(robot["lt"][1])],
+                [float(robot["rt"][0]), float(robot["rt"][1])],
+                [float(robot["lb"][0]), float(robot["lb"][1])],
+                [float(robot["rb"][0]), float(robot["rb"][1])],
+            ], dtype=np.float32)
+
+            H, _ = cv2.findHomography(ws_pts, robot_pts, method=0)
+
+            if H is None:
+                self.get_logger().error("Failed to compute H_ws_to_robot")
+            else:
+                self.get_logger().info("Computed workspace->robot homography successfully.")
+
+            return H
+
+        except Exception as e:
+            self.get_logger().error(f"compute_workspace_to_robot_homography failed: {e}")
+            return None
+
+    def workspace_to_robot(self, x_ws: float, y_ws: float):
+        if self.H_ws_to_robot is None:
+            return None
+        return self.transform_point(self.H_ws_to_robot, (x_ws, y_ws))
+
     def transform_point(self, H, pt_xy):
         try:
             src = np.array([[[float(pt_xy[0]), float(pt_xy[1])]]], dtype=np.float32)
@@ -811,12 +1102,73 @@ class VisionScanItemsActionServer(Node):
     def is_overlapping_tag(self, box, tag_boxes, thr=0.15):
         return any(self.bbox_iou(box, tb) > thr for tb in tag_boxes)
 
+    def filter_duplicate_and_small_boxes(self, box_items):
+        filtered = []
+
+        for box, x1, y1, x2, y2 in box_items:
+            area = max(0, x2 - x1) * max(0, y2 - y1)
+            if area < self.min_box_area_px:
+                continue
+            filtered.append((box, x1, y1, x2, y2))
+
+        keep = [True] * len(filtered)
+
+        for i in range(len(filtered)):
+            if not keep[i]:
+                continue
+
+            box_i, x1_i, y1_i, x2_i, y2_i = filtered[i]
+            cls_i = int(box_i.cls.item())
+            area_i = max(0, x2_i - x1_i) * max(0, y2_i - y1_i)
+            conf_i = float(box_i.conf.item())
+
+            for j in range(i + 1, len(filtered)):
+                if not keep[j]:
+                    continue
+
+                box_j, x1_j, y1_j, x2_j, y2_j = filtered[j]
+                cls_j = int(box_j.cls.item())
+
+                if cls_i != cls_j:
+                    continue
+
+                iou = self.bbox_iou((x1_i, y1_i, x2_i, y2_i), (x1_j, y1_j, x2_j, y2_j))
+                if iou < self.dup_iou_thres:
+                    continue
+
+                area_j = max(0, x2_j - x1_j) * max(0, y2_j - y1_j)
+                conf_j = float(box_j.conf.item())
+
+                smaller = min(area_i, area_j)
+                larger = max(area_i, area_j)
+
+                if larger <= 0:
+                    continue
+
+                if smaller / larger <= self.small_box_area_ratio:
+                    if area_i < area_j:
+                        keep[i] = False
+                        break
+                    else:
+                        keep[j] = False
+                else:
+                    if conf_i < conf_j:
+                        keep[i] = False
+                        break
+                    else:
+                        keep[j] = False
+
+        return [filtered[i] for i in range(len(filtered)) if keep[i]]
+
     def normalize_yaw_deg_180(self, yaw_deg: float) -> float:
         while yaw_deg > 90.0:
             yaw_deg -= 180.0
         while yaw_deg <= -90.0:
             yaw_deg += 180.0
         return yaw_deg
+
+    def apply_yaw_reference_shift(self, yaw_deg: float) -> float:
+        return self.normalize_yaw_deg_180(yaw_deg + 90.0)
 
     def yaw_to_axis_0_180(self, yaw_deg: float) -> float:
         y = self.normalize_yaw_deg_180(yaw_deg)
@@ -864,9 +1216,6 @@ class VisionScanItemsActionServer(Node):
                 return float(stable)
         return float(self.last_good_yaw_by_track.get(track_key, 0.0))
 
-    # =====================================================
-    # Depth
-    # =====================================================
     def get_depth_median_mm(self, depth_img, cx, cy, k=2) -> Optional[float]:
         h, w = depth_img.shape[:2]
         x1, x2 = clamp(cx - k, 0, w - 1), clamp(cx + k + 1, 0, w)
@@ -880,9 +1229,6 @@ class VisionScanItemsActionServer(Node):
 
         return float(np.median(vals)) * self.depth_value_scale_to_m * 1000.0
 
-    # =====================================================
-    # ROI / Yaw / Mask
-    # =====================================================
     def build_object_mask(self, roi_bgr, other_boxes=None):
         if roi_bgr is None or roi_bgr.size == 0:
             return None, None
@@ -961,7 +1307,7 @@ class VisionScanItemsActionServer(Node):
         out[mask > 0] = roi_bgr[mask > 0]
         return out
 
-    def estimate_yaw_deg_from_roi(
+    def estimate_yaw_deg_from_roi_ws(
         self,
         roi_bgr,
         roi_origin_xy,
@@ -1029,24 +1375,74 @@ class VisionScanItemsActionServer(Node):
         if best_vec is None or best_len < 1e-6:
             return (None, None, masked_roi) if return_masked_roi else (None, None)
 
-        yaw_deg = math.degrees(math.atan2(float(best_vec[1]), float(best_vec[0])))
-        yaw_deg = self.normalize_yaw_deg_180(yaw_deg)
+        yaw_deg = -math.degrees(math.atan2(float(best_vec[1]), float(best_vec[0])))
+        yaw_deg = self.apply_yaw_reference_shift(yaw_deg)
 
         if return_masked_roi:
             return yaw_deg, box_ws, masked_roi
         return yaw_deg, box_ws
 
-    # =====================================================
-    # QR / debug
-    # =====================================================
-    def decode_qr_from_roi(self, roi_bgr) -> str:
+    def estimate_yaw_deg_from_roi_img(
+        self,
+        roi_bgr,
+        other_boxes=None,
+        return_masked_roi=False,
+    ):
         if roi_bgr is None or roi_bgr.size == 0:
-            return ""
-        try:
-            qrs = qr_decode(roi_bgr)
-            return "" if len(qrs) == 0 else qrs[0].data.decode("utf-8", errors="ignore").strip()
-        except Exception:
-            return ""
+            return (None, roi_bgr) if return_masked_roi else None
+
+        if other_boxes is None:
+            other_boxes = []
+
+        roi_h, roi_w = roi_bgr.shape[:2]
+
+        other_boxes_local = []
+        for bx1, by1, bx2, by2 in other_boxes:
+            lx1 = clamp(bx1, 0, roi_w - 1)
+            ly1 = clamp(by1, 0, roi_h - 1)
+            lx2 = clamp(bx2, 0, roi_w - 1)
+            ly2 = clamp(by2, 0, roi_h - 1)
+            other_boxes_local.append((lx1, ly1, lx2, ly2))
+
+        selected_mask, cnt = self.build_object_mask(roi_bgr, other_boxes_local)
+        masked_roi = self.masked_roi_from_mask(roi_bgr, selected_mask)
+
+        if cnt is None:
+            return (None, masked_roi) if return_masked_roi else None
+
+        pts = cnt.reshape(-1, 2).astype(np.float32)
+        if len(pts) < 5:
+            return (None, masked_roi) if return_masked_roi else None
+
+        rect = cv2.minAreaRect(pts)
+        (_, _), (rw, rh), _ = rect
+
+        if rw < 1e-6 or rh < 1e-6:
+            return (None, masked_roi) if return_masked_roi else None
+
+        long_side, short_side = max(rw, rh), min(rw, rh)
+        if long_side / max(short_side, 1e-6) < self.yaw_min_aspect_ratio:
+            return (None, masked_roi) if return_masked_roi else None
+
+        box = cv2.boxPoints(rect).astype(np.float32)
+
+        best_len, best_vec = -1.0, None
+        for i in range(4):
+            p0, p1 = box[i], box[(i + 1) % 4]
+            vec = p1 - p0
+            length = float(np.linalg.norm(vec))
+            if length > best_len:
+                best_len, best_vec = length, vec
+
+        if best_vec is None or best_len < 1e-6:
+            return (None, masked_roi) if return_masked_roi else None
+
+        yaw_deg = -math.degrees(math.atan2(-float(best_vec[1]), float(best_vec[0])))
+        yaw_deg = self.apply_yaw_reference_shift(yaw_deg)
+
+        if return_masked_roi:
+            return yaw_deg, masked_roi
+        return yaw_deg
 
     def publish_debug(self, img_bgr, stamp):
         try:
@@ -1055,7 +1451,8 @@ class VisionScanItemsActionServer(Node):
 
             if self.show_cv:
                 try:
-                    cv2.imshow("vision_debug", img_bgr)
+                    display_img = img_bgr
+                    cv2.imshow("vision_debug", display_img)
                     cv2.resizeWindow("vision_debug", self.cv_window_width, self.cv_window_height)
                     cv2.waitKey(1)
                 except Exception as e:
@@ -1082,8 +1479,17 @@ def main(args=None):
     finally:
         if node.show_cv:
             cv2.destroyAllWindows()
-        node.destroy_node()
-        rclpy.shutdown()
+
+        try:
+            node.destroy_node()
+        except Exception:
+            pass
+
+        try:
+            if rclpy.ok():
+                rclpy.shutdown()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

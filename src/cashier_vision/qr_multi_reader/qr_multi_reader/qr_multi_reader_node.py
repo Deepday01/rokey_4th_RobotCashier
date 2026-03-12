@@ -50,14 +50,18 @@ class VisionScanItemsNode(Node):
         self.bridge = CvBridge()
         self.model = YOLO(self.model_path)
 
-        self.item_order = ["halls", "insect", "dino", "candy", "caramel"]
+        self.item_order = ["halls", "insect", "caramel", "candy", "cream", "eclipse_red", "eclipse_gre"]
 
         self.qr_map = {
             "https://m.site.naver.com/20lZW": "halls",
             "https://m.site.naver.com/20m1A": "insect",
             "https://m.site.naver.com/20suF": "caramel",
             "https://m.site.naver.com/20svK": "candy",
-            "https://m.site.naver.com/20swh": "dino",
+            "https://m.site.naver.com/20swh": "caramel",
+            "https://m.site.naver.com/20swH": "cream"
+            "https://m.site.naver.com/20syN": "eclipse_red"
+            "https://m.site.naver.com/20y2j": "eclipse_gre"
+
         }
 
         self.model_names = self.model.names
