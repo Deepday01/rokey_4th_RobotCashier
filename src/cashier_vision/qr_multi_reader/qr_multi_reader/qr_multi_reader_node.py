@@ -58,9 +58,9 @@ class VisionScanItemsNode(Node):
             "https://m.site.naver.com/20suF": "caramel",
             "https://m.site.naver.com/20svK": "candy",
             "https://m.site.naver.com/20swh": "caramel",
-            "https://m.site.naver.com/20swH": "cream"
-            "https://m.site.naver.com/20syN": "eclipse_red"
-            "https://m.site.naver.com/20y2j": "eclipse_gre"
+            "https://m.site.naver.com/20swH": "cream",
+            "https://m.site.naver.com/20syN": "eclipse_red",
+            "https://m.site.naver.com/20y2j": "eclipse_gre",
 
         }
 
