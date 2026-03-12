@@ -1,13 +1,23 @@
-# 4개의 데모 노드와 1개의 실제 메인노드를 실행.
-# 하나씩 주석 처리해서 사용
-
-
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
+    debug_mode = LaunchConfiguration("debug_mode")
+
+    debug_mode_arg = DeclareLaunchArgument(
+        "debug_mode",
+        default_value="false",
+        description="Enable debug logs in workflow_node"
+    )
+
+
+
     return LaunchDescription([
+        debug_mode_arg,
+
         # Node(
         #     package="cashier_workflow",
         #     executable="demo_voice_node",
@@ -34,8 +44,11 @@ def generate_launch_description():
         ),
         Node(
             package="cashier_workflow",
-            executable="workflow_node",
+            executable="workflow_node_dev",
             name="workflow_node",
             output="screen",
+            parameters=[
+                 {"debug_mode": debug_mode}
+            ],
         ),
     ])
