@@ -24,8 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'plan_packing_node = cashier_plan_packing.packing_service_node:main',
-            'packing_service_core = cashier_plan_packing.packing_service_core:main',
+            'inference = cashier_plan_packing.inference:main',
+            'packing_node = cashier_plan_packing.packing_node:main',
         ],
     },
 )
