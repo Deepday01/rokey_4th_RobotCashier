@@ -20,7 +20,8 @@ from voice_processing.stt import STT
 # 추가
 import warnings
 from rclpy.action import ActionServer
-# 로봇 이동 관련 코드 추가 (취소 명령 시 로봇이 상품 제거 위해)
+# 로봇 이동 관련 코드 추가 (취소 명령 시 로봇이 상품 스캔 제거 위해)
+from robot_control.robot_scan_helper import move_to_scan_pose
 from robot_control.robot_cancel_helper import remove_item_by_pose
 from cashier_interfaces.action import VoiceSession
 from voice_processing.tts_helper import speak
@@ -67,6 +68,7 @@ class GetKeyword(Node):
 
             - 박하사탕 : halls
             - 호올스 : halls
+            - 호울스 : halls
             - 곤충 : insect
             - 곤충블록 : insect
             - 벌레장난감 : insect
@@ -177,10 +179,6 @@ class GetKeyword(Node):
 
         self.get_logger().info("MicRecorderNode initialized.")
         self.get_logger().info("wait for client's request...")
-        # self.get_keyword_srv = self.create_service(
-        #     Trigger, "get_keyword", self.get_keyword
-        # )
-
         self._action_server = ActionServer(
             self,
             VoiceSession,
@@ -401,6 +399,7 @@ class GetKeyword(Node):
                 if command == "scan":
                     print("상품을 스캔하겠습니다. 잠시만 기다려주세요.")
                     speak("상품을 스캔하겠습니다. 잠시만 기다려주세요.")
+                    move_to_scan_pose()
                     result.command = CMD_SCAN
                     break  # scan 명령이 들어오면 WAKEUP 루프 탈출
                 elif command == "pack" or command == "cancel" or command == "yes" or command == "no":
@@ -562,41 +561,6 @@ class GetKeyword(Node):
                                 "취소할 상품 개수를 다시 말해주세요."
                             )
                             break
-                    # 2) 전부 가능하면 실제 삭제
-                    # else:
-                    #     updated_items = list(items_in)
-
-                    #     for target_name, cancel_count in zip(items, cancel_counts):
-                    #         updated_items = self.remove_items_by_name(updated_items, target_name, cancel_count)
-
-                    #     removed_log = ", ".join(
-                    #         [f"{name} {count}개" for name, count in zip(items, cancel_counts)]
-                    #     )
-                    #     print(f"{removed_log} 취소했습니다.")
-                    #     speak(f"{removed_log} 취소했습니다.")
-
-                    #     items_in = updated_items
-
-                    #     self.get_logger().info(f"updated item count: {len(items_in)}")
-                    #     for i, item in enumerate(items_in):
-                    #         self.get_logger().info(
-                    #             f"[UPDATED {i}] item_id={item.item_id}, name={item.name}"
-                    #         )
-
-                    #     if len(items_in) == 0:
-                    #         print("모든 상품이 취소되었습니다. 수정을 종료합니다.")
-                    #         speak("모든 상품이 취소되었습니다. 수정을 종료합니다.")
-                    #         # pack 관련 적용
-                    #         result.success = True
-                    #         result.command = CMD_UNKNOWN
-                    #         result.items_out = items_in
-                    #         goal_handle.succeed()
-                    #         return result
-
-                    #     print("추가로 수정할 상품이 있으신가요?")
-                    #     speak("추가로 수정할 상품이 있으신가요?")
-                    #     state = "ASK_MORE_EDIT"
-                    #     continue
 
                     # 2) 전부 가능하면 물리 제거 후 논리 삭제
                     else:
@@ -620,7 +584,7 @@ class GetKeyword(Node):
                                     target_item.yaw,
                                 ]
 
-                                remove_item_by_pose(target_pose)
+                                remove_item_by_pose(target_pose, target_item.name)
 
                             # 물리 제거 후 논리 삭제
                             updated_items = self.remove_items_by_name(

@@ -29,9 +29,16 @@ JREADY = [0, 0, 90, 0, 90, 0]
 CANCEL_DROP_POSE = [445.5, -242.6, 174.4, 156.4, 180.0, -112.5]
 JDROP = [90, 0, 90, 0, 90, 0]
 
-
-# 취소할 물건의 위치에서 이만큼 위로 올라갔다가 내려가도록 (충돌 방지 위해)
-SAFE_Z_OFFSET = 50.0
+# 그리퍼 너비 구하는 딕셔너리
+GRIPPER_WIDTH = {
+    "halls": 530,
+    "insect": 630,
+    "caramel": 540,
+    "candy": 850,
+    "cream": 435,
+    "eclipse_red": 480,
+    "eclipse_gre": 480,
+}
 
 _initialized = False
 gripper = None
@@ -44,6 +51,9 @@ get_current_posx = None
 class DummyGripper:
     def open_gripper(self):
         print("[SIM] open gripper")
+    
+    def move_gripper(self, width_val, force_val=400):
+        print(f"[SIM] move gripper to {width_val}")
 
     def close_gripper(self):
         print("[SIM] close gripper")
@@ -123,7 +133,7 @@ def go_ready_only():
     mwait()
 
 
-def remove_item_by_pose(target_pose, drop_pose=None):
+def remove_item_by_pose(target_pose, target_name, drop_pose=None):
     """
     target_pose: [x, y, z, rx, ry, rz]
     drop_pose  : [x, y, z, rx, ry, rz]
@@ -142,9 +152,9 @@ def remove_item_by_pose(target_pose, drop_pose=None):
 
         ## 구분동작으로 지어줌 ##
         x, y, z, rx, ry, rz = target_pose
-        align_pose = [x, y, 280 + SAFE_Z_OFFSET, 90, 180, 90]
+        align_pose = [x, y, 300, 90, 180, 90]
 
-        # 1. 물체 위로 먼저 이동 + 방향 맞춤
+        # 1. 물체 위로 먼저 이동
         print(f"{align_pose}로 이동 시작합니다.")
         movel(align_pose, vel=VELOCITY, acc=ACC)
         mwait()
@@ -152,56 +162,52 @@ def remove_item_by_pose(target_pose, drop_pose=None):
         cur_x, sol = get_current_posx()
         print(f"현재 좌표는 {cur_x}")
 
-        ### 여기 구분 동작으로 엔드 축 회전 여부도 적용 가능성 있음 ###
-        # 1.1 현재 관절 위치에서 엔드 이 회전량만큼 회전
+        # 2. 물체의 방향만큼 그리퍼 회전
         cur_j = get_current_posj()
-        # j1, j2, j3, j4, j5, j6 = cur_j
-        # j6 = (j6 - 90) + rz 
-        # cur_j = [j1, j2, j3, j4, j5, j6]
-        #cur_j[5] = (cur_j[5] - 90) + rz
         cur_j[5] = cur_j[5] + rz
         movej(cur_j, vel=VELOCITY, acc=ACC)
         mwait()
 
-        # 2. 물체 내려가기
-        cur_x, sol = get_current_posx()
-        cur_x[2] = 280  # z 좌표만 타겟으로 변경
-        movel(cur_x, vel=VELOCITY, acc=ACC)
-        mwait()
-
-        # 3. 그리퍼 닫기
-        gripper.close_gripper()
+        # 3. 그리퍼 크기 조정 (물체마다 다르게 적용)
+        gripper.move_gripper(GRIPPER_WIDTH[target_name] + 200)
         if not wait_gripper_done():
             print("[robot_cancel_helper] gripper close timeout")
             return False
         mwait()
 
-        # 4. 물체 들어올리기 (충돌 방지 위해)
-        # movel(align_pose, vel=VELOCITY, acc=ACC)
-        # mwait()
-        # 2. 물체 내려가기
+        # 4. 그리퍼 내려가기 (물체마다 다르게 적용)
+        cur_x, sol = get_current_posx()
+        cur_x[2] = 220  # z 좌표만 타겟으로 변경
+        movel(cur_x, vel=VELOCITY, acc=ACC)
+        mwait()
+
+        # 5. 물체 집기 (물체마다 다르게 적용)
+        #gripper.close_gripper()
+        gripper.move_gripper(GRIPPER_WIDTH[target_name])
+        if not wait_gripper_done():
+            print("[robot_cancel_helper] gripper close timeout")
+            return False
+        mwait()
+
+        # 6. 물체 들어올리기 (충돌 방지 위해)
         cur_x, sol = get_current_posx()
         cur_x[2] = align_pose[2]  # z 좌표만 타겟으로 변경
         movel(cur_x, vel=VELOCITY, acc=ACC)
         mwait()
 
-        
-        # 5. 준비 자세로 복귀
-        go_ready_only()
-
-        # 6. drop 위치 이동
+        # 7. drop 위치 이동
         #movel(drop_pose, vel=VELOCITY, acc=ACC)
         movej(drop_pose, vel=VELOCITY, acc=ACC)
         mwait()
 
-        # 7. 그리퍼 열어서 물체 놓기
+        # 8. 그리퍼 열어서 물체 놓기
         gripper.open_gripper()
         if not wait_gripper_done():
             print("[robot_cancel_helper] gripper open timeout")
             return False
         mwait()
 
-        # 8. 준비 자세로 복귀
+        # 9. 준비 자세로 복귀
         go_ready_only()
         return True
 

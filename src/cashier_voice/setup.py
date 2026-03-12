@@ -35,8 +35,6 @@ setup(
     license='TODO: License declaration',
     entry_points={
         'console_scripts': [
-            'robot_control = robot_control.robot_control:main',
-            'object_detection = object_detection.detection:main',
             'get_keyword = voice_processing.get_keyword:main',
             'dummy_voice_client = voice_processing.dummy_voice_client:main',
             'test_cancel_helper = voice_processing.test_cancel_helper:main',
