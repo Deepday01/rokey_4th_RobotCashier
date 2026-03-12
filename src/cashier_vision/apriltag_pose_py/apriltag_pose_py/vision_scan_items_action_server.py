@@ -955,8 +955,8 @@ class VisionScanItemsActionServer(Node):
 
         pose_parts = []
         if workspace_ready and self.draw_xy:
-            pose_parts.append(f"rx={robot_x_mm:.1f}")
-            pose_parts.append(f"ry={robot_y_mm:.1f}")
+            pose_parts.append(f"x={robot_x_mm:.1f}")
+            pose_parts.append(f"y={robot_y_mm:.1f}")
         if self.draw_z:
             pose_parts.append(f"z={z_mm:.1f}")
         if self.draw_yaw:
