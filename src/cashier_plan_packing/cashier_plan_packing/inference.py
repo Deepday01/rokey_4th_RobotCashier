@@ -5,14 +5,16 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 import torch.nn as nn
-from cashier_interfaces.msg import Placement as PlacementMsg
+import matplotlib.pyplot as plt
+from torch.distributions import Categorical
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 
 # =========================
 # User settings
 # =========================
 CHECKPOINT_PATH = "/home/leeseungmin/Desktop/Doosan/rokey_ws/src/cashier_plan_packing/cashier_plan_packing/checkpoint_heightmap_attention_policy_candidate_split_v2.pth"
-BASKET_SIZE = (170, 130, 75)
-BASKET_WORLD_ORIGIN = (300.0, 400.0, 500.0)
+BASKET_SIZE = (180, 130, 75)
 GRID_SIZE = 5
 MAX_OBJECTS = 8
 SUPPORT_THRESHOLD = 0.72
@@ -22,8 +24,31 @@ CANDIDATE_FEAT_DIM = 12
 TRANSFORMER_HEADS = 8
 TRANSFORMER_LAYERS = 2
 DROPOUT = 0.10
+N_SELECT = 8
 GREEDY = False
 RANDOM_SEED = 42
+
+# Postprocess settings
+POSTPROCESS_CLEARANCE_MM = 5
+POSTPROCESS_MAX_SHIFT_MM = 20
+POSTPROCESS_ALLOW_Y_SHIFT = True
+POSTPROCESS_WALL_MARGIN_MM = 0
+POSTPROCESS_IGNORE_SUPPORT = True
+POSTPROCESS_SUPPORT_FREE_SHIFT_MM = 3
+
+# Multi-trial settings
+N_TRIALS = 5
+
+BASE_CATALOG = [
+    {"name": "애크논크림", "size": (125, 35, 20), "durability": 3},
+    {"name": "카라멜1", "size": (70, 45, 25), "durability": 1},
+    {"name": "카라멜2", "size": (70, 45, 25), "durability": 1},
+    {"name": "나비 블럭", "size": (80, 50, 40), "durability": 4},
+    {"name": "아이셔", "size": (110, 75, 40), "durability": 2},
+    {"name": "이클립스", "size": (80, 50, 15), "durability": 5},
+    {"name": "이클립스빨강", "size": (80, 45, 25), "durability": 5},
+    {"name": "이클립스노랑", "size": (80, 45, 25), "durability": 5},
+]
 
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
@@ -110,7 +135,7 @@ def in_bounds(pos, size, basket):
     x, y, z = pos
     w, d, h = size
     bx, by, bz = basket
-    return x >= 0 and y >= 0 and z >= 0 and (x + w) <= bx and (y + d) <= by and (z + h) <= bz
+    return x >= -10 and y >= -10 and z >= 0 and (x + w) <= bx+10 and (y + d) <= by+10 and (z + h) <= bz
 
 
 def total_item_volume(placements):
@@ -130,6 +155,68 @@ def bounding_box_volume(placements):
     max_y = max(p.position[1] + p.size[1] for p in placements)
     max_z = max(p.position[2] + p.size[2] for p in placements)
     return max_x * max_y * max_z
+
+
+def interval_overlap_len(a0, a1, b0, b1):
+    return max(0.0, min(a1, b1) - max(a0, b0))
+
+
+def axis_gap(a0, a1, b0, b1):
+    if a1 <= b0:
+        return b0 - a1
+    if b1 <= a0:
+        return a0 - b1
+    return 0.0
+
+
+def z_overlap(p1, p2):
+    z1, h1 = p1.position[2], p1.size[2]
+    z2, h2 = p2.position[2], p2.size[2]
+    return (z1 < z2 + h2) and (z2 < z1 + h1)
+
+
+def clearance_violation(probe, placed, clearance_mm):
+    if not z_overlap(probe, placed):
+        return False
+
+    x1, y1, _ = probe.position
+    w1, d1, _ = probe.size
+    x2, y2, _ = placed.position
+    w2, d2, _ = placed.size
+
+    x_gap = axis_gap(x1, x1 + w1, x2, x2 + w2)
+    y_gap = axis_gap(y1, y1 + d1, y2, y2 + d2)
+
+    y_overlap = interval_overlap_len(y1, y1 + d1, y2, y2 + d2) > 0
+    x_overlap = interval_overlap_len(x1, x1 + w1, x2, x2 + w2) > 0
+
+    if y_overlap and x_gap < clearance_mm:
+        return True
+
+    if x_overlap and y_gap < clearance_mm:
+        return True
+
+    return False
+
+
+def exact_support_ratio_from_list(pos, size, placed_list):
+    x, y, z = pos
+    w, d, _ = size
+
+    if z == 0:
+        return 1.0
+
+    base_area = max(1.0, float(w * d))
+    support_area = 0.0
+
+    for p in placed_list:
+        px, py, pz = p.position
+        pw, pd, ph = p.size
+        if pz + ph != z:
+            continue
+        support_area += overlap_area_2d(x, y, w, d, px, py, pw, pd)
+
+    return float(support_area / base_area)
 
 
 class PackingEnv:
@@ -192,13 +279,11 @@ class PackingEnv:
         return pen
 
     def validate_placement(self, pos, size):
-        if not in_bounds(pos, size, self.basket_size):
-            return False, 0.0, "out_of_bounds"
-
         x, y, z = pos
         w, d, h = size
-        if z + h > self.basket_size[2]:
-            return False, 0.0, "over_height"
+
+        if not in_bounds(pos, size, self.basket_size):
+            return False, 0.0, "out_of_bounds"
 
         probe = Placement(
             episode_index=-1,
@@ -212,12 +297,14 @@ class PackingEnv:
             rotation_rpy=(0, 0, 0),
         )
 
-        if any(boxes_intersect(probe, p) for p in self.placements):
-            return False, 0.0, "overlap"
+        for p in self.placements:
+            if boxes_intersect(probe, p):
+                return False, 0.0, "overlap"
 
-        support = self.exact_support_ratio(pos, size)
+        support = exact_support_ratio_from_list(pos, size, self.placements)
         support = min(support, 1.0) if z > 0 else 1.0
-        if support < self.support_threshold:
+
+        if z > 0 and support < self.support_threshold:
             return False, float(support), "insufficient_support"
 
         return True, float(support), "ok"
@@ -571,6 +658,167 @@ class PackingEnv:
         return next_state, float(reward), done, info
 
 
+def validate_postprocessed_position(
+    pos,
+    size,
+    placed_list,
+    basket_size,
+    support_threshold,
+    clearance_mm,
+    ignore_support=False,
+):
+    if not in_bounds(pos, size, basket_size):
+        return False, 0.0, "out_of_bounds"
+
+    probe = Placement(
+        episode_index=-1,
+        base_index=-1,
+        name="post_probe",
+        original_size=size,
+        size=size,
+        position=pos,
+        durability=1,
+        support_ratio=0.0,
+        rotation_rpy=(0, 0, 0),
+    )
+
+    for p in placed_list:
+        if boxes_intersect(probe, p):
+            return False, 0.0, "overlap"
+
+    for p in placed_list:
+        if clearance_violation(probe, p, clearance_mm):
+            return False, 0.0, "clearance"
+
+    if ignore_support:
+        return True, 1.0, "ok_ignore_support"
+
+    support = exact_support_ratio_from_list(pos, size, placed_list)
+    support = min(support, 1.0) if pos[2] > 0 else 1.0
+
+    if support < support_threshold:
+        return False, float(support), "insufficient_support"
+
+    return True, float(support), "ok"
+
+
+def try_global_wall_margin(placements, basket_size, wall_margin_mm):
+    if wall_margin_mm <= 0 or len(placements) == 0:
+        return placements
+
+    shifted = []
+    for p in placements:
+        x, y, z = p.position
+        new_pos = (x + wall_margin_mm, y + wall_margin_mm, z)
+        if not in_bounds(new_pos, p.size, basket_size):
+            return placements
+        shifted.append(
+            Placement(
+                episode_index=p.episode_index,
+                base_index=p.base_index,
+                name=p.name,
+                original_size=p.original_size,
+                size=p.size,
+                position=new_pos,
+                durability=p.durability,
+                support_ratio=p.support_ratio,
+                rotation_rpy=p.rotation_rpy,
+            )
+        )
+    return shifted
+
+
+def postprocess_clearance(
+    placements,
+    basket_size,
+    support_threshold,
+    clearance_mm=1,
+    max_shift_mm=25,
+    allow_y_shift=True,
+    wall_margin_mm=0,
+    ignore_support=False,
+    support_free_shift_mm=3,
+):
+    if len(placements) == 0:
+        return [], []
+
+    base_list = try_global_wall_margin(list(placements), basket_size, wall_margin_mm)
+
+    fixed = []
+    logs = []
+
+    for idx, p in enumerate(base_list):
+        x0, y0, z0 = p.position
+        best = None
+        best_support = p.support_ratio
+
+        for total_shift in range(0, max_shift_mm + 1):
+            trial_positions = []
+
+            if allow_y_shift:
+                seen = set()
+                for dx in range(-total_shift, total_shift + 1):
+                    rem = total_shift - abs(dx)
+                    for dy in (-rem, rem):
+                        pos = (x0 + dx, y0 + dy, z0)
+                        if pos not in seen:
+                            seen.add(pos)
+                            trial_positions.append(pos)
+            else:
+                trial_positions.append((x0 + total_shift, y0, z0))
+                if total_shift > 0:
+                    trial_positions.append((x0 - total_shift, y0, z0))
+
+            for pos in trial_positions:
+                shift_amount = abs(pos[0] - x0) + abs(pos[1] - y0)
+                use_ignore_support = ignore_support and (shift_amount <= support_free_shift_mm)
+
+                ok, support, reason = validate_postprocessed_position(
+                    pos,
+                    p.size,
+                    fixed,
+                    basket_size,
+                    support_threshold,
+                    clearance_mm,
+                    ignore_support=use_ignore_support,
+                )
+
+                if ok:
+                    best = pos
+                    best_support = support
+                    break
+
+            if best is not None:
+                break
+
+        if best is None:
+            best = p.position
+            logs.append(
+                f"[WARN] step {idx+1} | {p.name} | postprocess failed -> keep original {p.position}"
+            )
+        else:
+            if best != p.position:
+                logs.append(
+                    f"[POST] step {idx+1} | {p.name} | {p.position} -> {best}"
+                )
+
+        fixed.append(
+            Placement(
+                episode_index=p.episode_index,
+                base_index=p.base_index,
+                name=p.name,
+                original_size=p.original_size,
+                size=p.size,
+                position=best,
+                durability=p.durability,
+                support_ratio=float(best_support),
+                rotation_rpy=p.rotation_rpy,
+            )
+        )
+
+    return fixed, logs
+
+
 # =========================
 # Networks
 # =========================
@@ -755,8 +1003,108 @@ def mask_logits(logits, mask):
 
 
 # =========================
+# Visualization
+# =========================
+def cuboid_faces(position, size):
+    x, y, z = position
+    w, d, h = size
+    c = np.array([
+        [x, y, z],
+        [x + w, y, z],
+        [x + w, y + d, z],
+        [x, y + d, z],
+        [x, y, z + h],
+        [x + w, y, z + h],
+        [x + w, y + d, z + h],
+        [x, y + d, z + h],
+    ], dtype=float)
+    return [
+        [c[i] for i in [0, 1, 2, 3]],
+        [c[i] for i in [4, 5, 6, 7]],
+        [c[i] for i in [0, 1, 5, 4]],
+        [c[i] for i in [2, 3, 7, 6]],
+        [c[i] for i in [1, 2, 6, 5]],
+        [c[i] for i in [0, 3, 7, 4]],
+    ]
+
+
+def draw_basket_wireframe(ax, basket):
+    bx, by, bz = basket
+    pts = np.array([
+        [0, 0, 0], [bx, 0, 0], [bx, by, 0], [0, by, 0],
+        [0, 0, bz], [bx, 0, bz], [bx, by, bz], [0, by, bz],
+    ], dtype=float)
+    edges = [
+        (0, 1), (1, 2), (2, 3), (3, 0),
+        (4, 5), (5, 6), (6, 7), (7, 4),
+        (0, 4), (1, 5), (2, 6), (3, 7),
+    ]
+    for a, b in edges:
+        ax.plot(*zip(pts[a], pts[b]), linewidth=1.1, color="black")
+
+
+def visualize_solution(placements, basket, title="RL Packing Test Result"):
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection="3d")
+    colors = ["cyan", "orange", "lime", "violet", "gold", "salmon", "deepskyblue", "pink"]
+
+    for idx, p in enumerate(placements):
+        faces = cuboid_faces(p.position, p.size)
+        poly = Poly3DCollection(faces, facecolors=colors[idx % len(colors)], edgecolors="k", alpha=0.72)
+        ax.add_collection3d(poly)
+
+        cx = p.position[0] + p.size[0] / 2.0
+        cy = p.position[1] + p.size[1] / 2.0
+        cz = p.position[2] + p.size[2] / 2.0
+        ax.text(cx, cy, cz, f"{p.base_index}:{p.name}", fontsize=8)
+
+    draw_basket_wireframe(ax, basket)
+    bx, by, bz = basket
+    ax.set_xlim(0, bx)
+    ax.set_ylim(0, by)
+    ax.set_zlim(0, bz)
+    ax.set_box_aspect((bx, by, bz))
+    ax.set_xlabel("X (mm)")
+    ax.set_ylabel("Y (mm)")
+    ax.set_zlabel("Z (mm)")
+    ax.set_title(title)
+    plt.tight_layout()
+    plt.show()
+
+
+def build_plan_output(placements):
+    result = []
+    for p in placements:
+        pos = (float(p.position[0]), float(p.position[1]), float(p.position[2]))
+        rotation = tuple(int(v) for v in p.rotation_rpy)
+        result.append((int(p.base_index), pos, rotation))
+    return result
+
+
+# =========================
 # Inference helpers
 # =========================
+def choose_n_objects(n):
+    if n < 1 or n > len(BASE_CATALOG):
+        raise ValueError(f"n must be between 1 and {len(BASE_CATALOG)}")
+    if n > MAX_OBJECTS:
+        raise ValueError(
+            f"This checkpoint was trained with MAX_OBJECTS={MAX_OBJECTS}. "
+            f"Set N_SELECT <= {MAX_OBJECTS} or retrain with a larger max_objects."
+        )
+
+    picked_indices = random.sample(range(len(BASE_CATALOG)), n)
+    objects = []
+
+    for episode_index, base_index in enumerate(picked_indices):
+        item = dict(BASE_CATALOG[base_index])
+        item["base_index"] = base_index
+        item["episode_index"] = episode_index
+        objects.append(item)
+
+    return objects
+
+
 def load_models(checkpoint_path):
     gx = BASKET_SIZE[0] // GRID_SIZE
     gy = BASKET_SIZE[1] // GRID_SIZE
@@ -797,46 +1145,6 @@ def load_models(checkpoint_path):
     return order_model, placement_model
 
 
-def get_order_distribution(order_model, env, state):
-    hm_t = torch.tensor(env.get_heightmap_tensor(), dtype=torch.float32, device=device).unsqueeze(0)
-    state_t = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-    obj_feat_t = torch.tensor(env.get_object_feature_matrix(), dtype=torch.float32, device=device).unsqueeze(0)
-    order_mask_t = torch.tensor(env.get_feasible_object_mask(), dtype=torch.float32, device=device).unsqueeze(0)
-
-    with torch.no_grad():
-        order_logits, _ = order_model(hm_t, state_t, obj_feat_t)
-        order_logits = mask_logits(order_logits, order_mask_t)
-        probs = torch.softmax(order_logits, dim=-1).squeeze(0).detach().cpu().numpy()
-
-    return probs
-
-
-def get_placement_distribution(placement_model, env, state, obj_idx):
-    hm_t = torch.tensor(env.get_heightmap_tensor(), dtype=torch.float32, device=device).unsqueeze(0)
-    state_t = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-    obj_feat_t = torch.tensor(env.get_object_feature_matrix(), dtype=torch.float32, device=device).unsqueeze(0)
-    chosen_feat = obj_feat_t[:, obj_idx, :]
-    cand_feat_t = torch.tensor(env.get_candidate_feature_matrix(obj_idx), dtype=torch.float32, device=device).unsqueeze(0)
-    cand_mask_t = torch.tensor(env.get_candidate_mask(obj_idx), dtype=torch.float32, device=device).unsqueeze(0)
-
-    with torch.no_grad():
-        place_logits, _ = placement_model(hm_t, state_t, chosen_feat, cand_feat_t)
-        place_logits = mask_logits(place_logits, cand_mask_t)
-        probs = torch.softmax(place_logits, dim=-1).squeeze(0).detach().cpu().numpy()
-
-    return probs
-
-
-def pick_index_from_probs(probs, greedy=False):
-    valid_indices = np.where(probs > 0)[0]
-    if len(valid_indices) == 0:
-        return None
-    if greedy:
-        return int(np.argmax(probs))
-    probs = probs / probs.sum()
-    return int(np.random.choice(len(probs), p=probs))
-
-
 def run_inference_once(order_model, placement_model, objects, support_threshold=0.70, greedy=True):
     env = PackingEnv(
         BASKET_SIZE,
@@ -849,15 +1157,28 @@ def run_inference_once(order_model, placement_model, objects, support_threshold=
     total_reward = 0.0
 
     while env.has_any_feasible_action():
-        order_probs = get_order_distribution(order_model, env, state)
-        obj_idx = pick_index_from_probs(order_probs, greedy=greedy)
-        if obj_idx is None:
-            break
+        hm_t = torch.tensor(env.get_heightmap_tensor(), dtype=torch.float32, device=device).unsqueeze(0)
+        state_t = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+        obj_feat_t = torch.tensor(env.get_object_feature_matrix(), dtype=torch.float32, device=device).unsqueeze(0)
+        order_mask_t = torch.tensor(env.get_feasible_object_mask(), dtype=torch.float32, device=device).unsqueeze(0)
 
-        candidate_probs = get_placement_distribution(placement_model, env, state, obj_idx)
-        cand_idx = pick_index_from_probs(candidate_probs, greedy=greedy)
-        if cand_idx is None:
-            break
+        with torch.no_grad():
+            order_logits, _ = order_model(hm_t, state_t, obj_feat_t)
+            order_logits = mask_logits(order_logits, order_mask_t)
+            if greedy:
+                obj_idx = int(torch.argmax(order_logits, dim=-1).item())
+            else:
+                obj_idx = int(Categorical(logits=order_logits).sample().item())
+
+            chosen_feat = obj_feat_t[:, obj_idx, :]
+            cand_feat_t = torch.tensor(env.get_candidate_feature_matrix(obj_idx), dtype=torch.float32, device=device).unsqueeze(0)
+            cand_mask_t = torch.tensor(env.get_candidate_mask(obj_idx), dtype=torch.float32, device=device).unsqueeze(0)
+            place_logits, _ = placement_model(hm_t, state_t, chosen_feat, cand_feat_t)
+            place_logits = mask_logits(place_logits, cand_mask_t)
+            if greedy:
+                cand_idx = int(torch.argmax(place_logits, dim=-1).item())
+            else:
+                cand_idx = int(Categorical(logits=place_logits).sample().item())
 
         state, reward, done, _ = env.step(obj_idx, cand_idx)
         total_reward += reward
@@ -865,62 +1186,168 @@ def run_inference_once(order_model, placement_model, objects, support_threshold=
         if done:
             break
 
-    return env.placements, total_reward
+    raw_placements = list(env.placements)
+
+    post_placements, post_logs = postprocess_clearance(
+        raw_placements,
+        basket_size=BASKET_SIZE,
+        support_threshold=support_threshold,
+        clearance_mm=POSTPROCESS_CLEARANCE_MM,
+        max_shift_mm=POSTPROCESS_MAX_SHIFT_MM,
+        allow_y_shift=POSTPROCESS_ALLOW_Y_SHIFT,
+        wall_margin_mm=POSTPROCESS_WALL_MARGIN_MM,
+        ignore_support=POSTPROCESS_IGNORE_SUPPORT,
+        support_free_shift_mm=POSTPROCESS_SUPPORT_FREE_SHIFT_MM,
+    )
+
+    return post_placements, total_reward, build_plan_output(post_placements), post_logs
 
 
-def objects_from_request_items(items):
-    if len(items) > MAX_OBJECTS:
-        raise ValueError(f"received {len(items)} items, but MAX_OBJECTS={MAX_OBJECTS}")
+def run_multi_trial(order_model, placement_model, objects, n_trials, support_threshold=0.70, greedy=False):
+    best_reward = -1e18
+    best_plan = None
+    best_placements = None
+    best_post_logs = None
+    trial_logs = []
 
-    objects = []
+    for trial in range(1, n_trials + 1):
+        trial_seed = RANDOM_SEED + trial
+        random.seed(trial_seed)
+        np.random.seed(trial_seed)
+        torch.manual_seed(trial_seed)
 
-    for episode_index, item in enumerate(items):
-        sx = int(item.width)
-        sy = int(item.depth)
-        sz = int(item.height)
-        durability = int(item.durability)
+        placements, total_reward, plan, post_logs = run_inference_once(
+            order_model,
+            placement_model,
+            objects,
+            support_threshold=support_threshold,
+            greedy=greedy,
+        )
 
-        if sx <= 0 or sy <= 0 or sz <= 0:
-            raise ValueError(
-                f"invalid size at index {episode_index}: ({sx}, {sy}, {sz})"
-            )
+        trial_logs.append((trial, total_reward, len(placements)))
 
-        objects.append({
-            "name": item.name if item.name else f"item_{episode_index}",
-            "item_id": item.item_id,
-            "size": (sx, sy, sz),
-            "durability": durability,
-            "base_index": episode_index,
-            "episode_index": episode_index,
-        })
+        print(
+            f"trial {trial:3d} | reward {total_reward:7.3f} | "
+            f"placed {len(placements)}/{len(objects)}"
+        )
 
-    return objects
+        better = False
+        if total_reward > best_reward:
+            better = True
+        elif abs(total_reward - best_reward) < 1e-9 and best_placements is not None:
+            if len(placements) > len(best_placements):
+                better = True
 
-def placements_to_response_msgs(placements):
-    response_msgs = []
+        if better:
+            best_reward = total_reward
+            best_plan = plan
+            best_placements = placements
+            best_post_logs = post_logs
 
-    bx, by, bz = BASKET_WORLD_ORIGIN
+    return best_placements, best_reward, best_plan, trial_logs, best_post_logs
 
-    for p in placements:
-        msg = PlacementMsg()
-        msg.object_index = int(p.base_index)
 
-        sx, sy, sz = p.size  # 회전 적용된 실제 크기
+def print_postprocess_logs(post_logs):
+    print("\n=== Postprocess logs ===")
+    if post_logs is None or len(post_logs) == 0:
+        print("no postprocess movement")
+        return
+    for line in post_logs:
+        print(line)
 
-        # 바구니 내부 기준 corner -> center
-        local_cx = float(p.position[0] + sx / 2.0)
-        local_cy = float(p.position[1] + sy / 2.0)
-        local_cz = float(p.position[2] + sz / 2.0)
 
-        # 바구니 상대좌표 -> 로봇/world 절대좌표
-        msg.x = bx + local_cx
-        msg.y = by - local_cy
-        msg.z = bz + local_cz
+def print_selected_objects(objects):
+    print("\n=== Selected objects ===")
+    for obj in objects:
+        print(
+            f"base_index={obj['base_index']} | name={obj['name']} | "
+            f"size={obj['size']} | durability={obj['durability']}"
+        )
 
-        msg.roll = float(p.rotation_rpy[0])
-        msg.pitch = float(p.rotation_rpy[1])
-        msg.yaw = float(p.rotation_rpy[2])
 
-        response_msgs.append(msg)
+def print_plan(plan):
+    print("\n=== Inference result: (index, pos, rotation) ===")
+    for step_idx, (base_index, pos, rotation) in enumerate(plan, start=1):
+        print(f"step {step_idx}: ({base_index}, {pos}, {rotation})")
 
-    return response_msgs
+
+def print_trial_summary(trial_logs):
+    rewards = [x[1] for x in trial_logs]
+    placeds = [x[2] for x in trial_logs]
+
+    print("\n=== Trial summary ===")
+    print(f"reward mean : {np.mean(rewards):.3f}")
+    print(f"reward std  : {np.std(rewards):.3f}")
+    print(f"reward max  : {np.max(rewards):.3f}")
+    print(f"placed mean : {np.mean(placeds):.3f}")
+    print(f"placed max  : {np.max(placeds)}")
+
+def test_main():
+    print(f"device: {device}")
+    print(f"checkpoint: {CHECKPOINT_PATH}")
+    print(f"n selected: {N_SELECT}")
+    print(f"n trials: {N_TRIALS}")
+    print(f"greedy: {GREEDY}")
+    print(f"post clearance: {POSTPROCESS_CLEARANCE_MM} mm")
+    print(f"post max shift: {POSTPROCESS_MAX_SHIFT_MM} mm")
+
+    order_model, placement_model = load_models(CHECKPOINT_PATH)
+    objects = choose_n_objects(N_SELECT)
+    print_selected_objects(objects)
+
+    best_placements, best_reward, best_plan, trial_logs, best_post_logs = run_multi_trial(
+        order_model,
+        placement_model,
+        objects,
+        n_trials=N_TRIALS,
+        support_threshold=SUPPORT_THRESHOLD,
+        greedy=GREEDY,
+    )
+
+    print_trial_summary(trial_logs)
+    print_postprocess_logs(best_post_logs)
+    print_plan(best_plan)
+    print(f"\nBest reward: {best_reward:.3f}")
+    print(f"Placed: {len(best_placements)}/{len(objects)}")
+
+    visualize_solution(
+        best_placements,
+        BASKET_SIZE,
+        title=f"BEST result | placed {len(best_placements)}/{len(objects)} | reward {best_reward:.3f}",
+    )
+def run(objects):
+    print(f"device: {device}")
+    print(f"checkpoint: {CHECKPOINT_PATH}")
+    print(f"n selected: {N_SELECT}")
+    print(f"n trials: {N_TRIALS}")
+    print(f"greedy: {GREEDY}")
+    print(f"post clearance: {POSTPROCESS_CLEARANCE_MM} mm")
+    print(f"post max shift: {POSTPROCESS_MAX_SHIFT_MM} mm")
+
+    order_model, placement_model = load_models(CHECKPOINT_PATH)
+    print_selected_objects(objects)
+
+    best_placements, best_reward, best_plan, trial_logs, best_post_logs = run_multi_trial(
+        order_model,
+        placement_model,
+        objects,
+        n_trials=N_TRIALS,
+        support_threshold=SUPPORT_THRESHOLD,
+        greedy=GREEDY,
+    )
+
+    print_trial_summary(trial_logs)
+    print_postprocess_logs(best_post_logs)
+    print_plan(best_plan)
+    print(f"\nBest reward: {best_reward:.3f}")
+    print(f"Placed: {len(best_placements)}/{len(objects)}")
+    # visualize_solution(
+    #     best_placements,
+    #     BASKET_SIZE,
+    #     title=f"BEST result | placed {len(best_placements)}/{len(objects)} | reward {best_reward:.3f}",
+    # )
+
+    return best_placements, best_reward, best_plan, trial_logs, best_post_logs
+
+if __name__ == "__main__":
+    run()
