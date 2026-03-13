@@ -16,7 +16,7 @@ from .inference import (
     run
 )
 
-BASKET_WORLD_ORIGIN = (300.0, 400.0, 500.0)
+BASKET_WORLD_ORIGIN = (220.0, 20.0, 5.0)
 def objects_from_request_items(items):
     if len(items) > MAX_OBJECTS:
         raise ValueError(f"received {len(items)} items, but MAX_OBJECTS={MAX_OBJECTS}")
@@ -42,6 +42,11 @@ def objects_from_request_items(items):
             "base_index": episode_index,
             "episode_index": episode_index,
         })
+
+    def get_name(obj):
+        return obj["name"]
+
+    objects.sort(key=get_name)
 
     return objects
 def placements_to_response_msgs(placements):

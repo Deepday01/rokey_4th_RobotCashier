@@ -1,18 +1,18 @@
 cmake_minimum_required(VERSION 3.8)
 project(cashier_interfaces)
 
+# ament 및 rosidl 설정
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+# 서비스 인터페이스 생성
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Item.msg"
-  "msg/Placement.msg"
-  "srv/ComputePackingPlan.srv"
+  "srv/SrvDepthPosition.srv"
   "action/VoiceSession.action"
-  "action/ScanItems.action"
-  "action/ExecutePacking.action"
 )
 
+# 런타임 의존성 내보내기
 ament_export_dependencies(rosidl_default_runtime)
 
 ament_package()

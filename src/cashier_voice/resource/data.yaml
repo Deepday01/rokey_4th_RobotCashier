@@ -1,0 +1,13 @@
+train: ./train/images
+val: ./valid/images
+test: ./test/images
+
+nc: 5
+names: ['cutting plier', 'hammer', 'screw driver', 'spanner', 'wrench']
+
+# roboflow:
+#   workspace: tzach
+#   project: fruits-ekcjm
+#   version: 1
+#   license: CC BY 4.0
+#   url: https://universe.roboflow.com/tzach/fruits-ekcjm/dataset/1
