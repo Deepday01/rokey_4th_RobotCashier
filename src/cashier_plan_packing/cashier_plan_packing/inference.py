@@ -1341,11 +1341,11 @@ def run(objects):
     print_plan(best_plan)
     print(f"\nBest reward: {best_reward:.3f}")
     print(f"Placed: {len(best_placements)}/{len(objects)}")
-    # visualize_solution(
-    #     best_placements,
-    #     BASKET_SIZE,
-    #     title=f"BEST result | placed {len(best_placements)}/{len(objects)} | reward {best_reward:.3f}",
-    # )
+   # visualize_solution(
+   #     best_placements,
+   #     BASKET_SIZE,
+   #     title=f"BEST result | placed {len(best_placements)}/{len(objects)} | reward {best_reward:.3f}",
+   # )
 
     return best_placements, best_reward, best_plan, trial_logs, best_post_logs
 
