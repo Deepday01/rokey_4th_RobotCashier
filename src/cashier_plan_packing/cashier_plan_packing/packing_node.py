@@ -16,7 +16,7 @@ from .inference import (
     run
 )
 
-BASKET_WORLD_ORIGIN = (300.0, 400.0, 500.0)
+BASKET_WORLD_ORIGIN = (185.509, -324.563, 149.685)
 def objects_from_request_items(items):
     if len(items) > MAX_OBJECTS:
         raise ValueError(f"received {len(items)} items, but MAX_OBJECTS={MAX_OBJECTS}")
