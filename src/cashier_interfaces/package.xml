@@ -4,7 +4,7 @@
   <name>cashier_interfaces</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="rokey4090@todo.todo">rokey4090</maintainer>
+  <maintainer email="mhi1248@naver.com">deepday</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
