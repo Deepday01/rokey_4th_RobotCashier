@@ -114,29 +114,33 @@ ROS2 통신을 위한 네트워크 ID를 설정합니다.
 ```bash
 echo $ROS_DOMAIN_ID
 export ROS_DOMAIN_ID=16
-
+```
 ### Step 2. ROS2 Workspace 빌드
 
 ```bash
 cd ~/cashier_ws
 colcon build
 source install/setup.bash
-Step 3. Workflow Node 실행
+```
+### Step 3. Workflow Node 실행
 
 packing 시스템의 전체 동작을 관리하는 workflow 노드를 실행합니다.
 
+```
 ros2 run cashier_workflow workflow_node
-Step 4. Launch 파일 실행
+```
+### Step 4. Launch 파일 실행
 
 테스트 및 통합 실행을 위해 launch 파일을 사용할 수 있습니다.
-
+```
 ros2 launch cashier_workflow demo_split.launch.py
-
+```
 디버그 모드 실행
-
+```
 ros2 launch cashier_workflow demo_split_dev.launch.py debug_mode:=true
+```
 
-✔ 실행 순서 요약
+# ✔ 실행 순서 요약
 
 ROS DOMAIN 설정
 
