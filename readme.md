@@ -74,9 +74,9 @@
 
 | 장비명 (Model) | 수량 | 비고 |
 |---|---|---|
-| Control PC | 1 | RL 모델 연산 및 ROS2 노드 실행 |
-| Depth Camera | 1 | 물체 인식 및 크기 정보 획득 |
-| Robot Manipulator | 1 | 실제 포장 동작 수행 |
+| Control PC | 1 | ROS2 노드 실행 |
+| Intel RealSense | 1 | 물체 인식 및 위치 정보 획득 |
+| Robot Manipulator M0609 | 1 | 실제 포장 동작 수행 |
 | Robot Gripper | 1 | 물체 파지 |
 | Basket / Container | 1 | 물체 적재 공간 |
 
@@ -111,13 +111,13 @@
 ROS2 통신을 위한 네트워크 ID를 설정합니다.  
 ※ 모든 터미널에서 동일하게 설정해야 합니다.
 
-```bash
+```ruby
 echo $ROS_DOMAIN_ID
 export ROS_DOMAIN_ID=16
 ```
 ### Step 2. ROS2 Workspace 빌드
 
-```bash
+```ruby
 cd ~/cashier_ws
 colcon build
 source install/setup.bash
@@ -126,17 +126,17 @@ source install/setup.bash
 
 packing 시스템의 전체 동작을 관리하는 workflow 노드를 실행합니다.
 
-```
+```ruby
 ros2 run cashier_workflow workflow_node
 ```
 ### Step 4. Launch 파일 실행
 
 테스트 및 통합 실행을 위해 launch 파일을 사용할 수 있습니다.
-```
+```ruby
 ros2 launch cashier_workflow demo_split.launch.py
 ```
 디버그 모드 실행
-```
+```ruby
 ros2 launch cashier_workflow demo_split_dev.launch.py debug_mode:=true
 ```
 
