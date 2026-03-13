@@ -127,6 +127,7 @@ class RobotController:
     # def close_gripper(self, width_mm: int | None = None) -> None:
     def close_gripper(self, width_mm: float | None = None) -> None:
         from DSR_ROBOT2 import mwait
+        self.logger.info(f'close_gripper 호출 > width_mm={width_mm}')
 
         if width_mm is None:
             gripper.close_gripper()
@@ -194,7 +195,7 @@ class RobotController:
             depth = item.size.depth
             item.size.width = depth
             item.size.depth = width
-            self.logger.info(f"<길이 스왑> \n기존 width: {width}, depth: {depth}\n 변경 width: {item.size.width}, height: {item.size.depth}")
+            self.logger.info(f"<길이 스왑> \n기존 width: {width}, depth: {depth}\n 변경 width: {item.size.width}, depth: {item.size.depth}")
             # 아이템 ry 값 싱크 맞추기
             item.pose.pitch = abs(item.pose.pitch - 90) 
 
@@ -215,7 +216,7 @@ class RobotController:
             # 올라오기
             self.move_to_relative_pose(Pose3D(0, 0, 200, 0,0,0)) 
             # self.move_to_relative_pose(Pose3D(0, 0, 150, 0,0,0)) # 물체 간섭 방지 목적(경유 지점)
-            # self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537)) # 경유 지점
+            # self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점
 
 
         elif step.rz_deg == 90:
@@ -223,11 +224,11 @@ class RobotController:
 
             # ====================rz 90도 회전 수행====================
             self.open_gripper()
-            self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537)) # 경유 지점
+            self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점
 
             # 물체 잡기('바닥 높이 + 물체 뎁스/2 - 그리퍼 옵셋)
             griper_offset = get_gripper_depth_offset(item.size.height)
-            object_grap_z = 143.232 + item.size.depth/2 - griper_offset
+            object_grap_z = 143.232 - 5 + item.size.depth/2 - griper_offset
             self.logger.info(f"step.rz_deg  > 잡기 > item.size.depth/2 확인: {item.size.depth/2}")
             self.logger.info(f"step.rz_deg  > 잡기 > griper_offset 확인: {griper_offset}")
 
@@ -237,10 +238,17 @@ class RobotController:
             self.close_gripper(width_mm = item.size.height)
 
             # 올라오기 > rz 90도 회전 
-            object_grap_z = 145.745 + item.size.depth/2 - griper_offset
-            self.logger.info(f"step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: {item.size.depth/2}")
-            self.logger.info(f"step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: {griper_offset}")
-            self.move_to_pose(Pose3D(-45.907, -345.922, object_grap_z +10, 125.195, 179.579, 125.739)) # 10은 물체를 살짝들어 회전시키기 위함
+            # object_grap_z = 145.745 + item.size.depth/2 - griper_offset
+            # self.logger.info(f"step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: {item.size.depth/2}")
+            # self.logger.info(f"step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: {griper_offset}")
+            # self.move_to_pose(Pose3D(-45.907, -345.922, object_grap_z +10, 125.195, 179.579, 125.739)) # 10은 물체를 살짝들어 회전시키기 위함
+            
+            # 올라오기
+            self.move_to_relative_pose(Pose3D(0,0,10,0,0,0))
+            # rz 90도 회전 
+            self.movej_to_relative_pose([0,0,0,0,0,90])
+
+
 
 
             # 아이템 size 스왑=========
@@ -254,7 +262,8 @@ class RobotController:
             
 
             # 물체 내려 놓기
-            self.move_to_pose(Pose3D(-45.907, -345.922, object_grap_z, 125.195, 179.579, 125.739)) # 물체 중심 높이까지
+            # self.move_to_pose(Pose3D(-45.907, -345.922, object_grap_z, 125.195, 179.579, 125.739)) # 물체 중심 높이까지
+            self.move_to_relative_pose(Pose3D(0,0,-10,0,0,0))
 
             # 그리퍼 오픈
             self.open_gripper()
@@ -262,7 +271,7 @@ class RobotController:
             # 올라오기
             self.move_to_relative_pose(Pose3D(0, 0, 200, 0,0,0)) # 물체 간섭 방지 목적(경유 지점)
             # self.move_to_relative_pose(Pose3D(0, 0, 150, 0,0,0)) # 물체 간섭 방지 목적(경유 지점)
-            # self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537)) # 경유 지점
+            # self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점
 
 
 class ExecutePackingServer(Node):
@@ -364,15 +373,15 @@ class ExecutePackingServer(Node):
             # ============회전 스테이지에 내려놓기============
             self.get_logger().info(f'회전 스테이지에 내려놓기 시작 ')
             # 경유 지점 이동
-            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537))
+            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537))
             # 물체 좌표에 내려 놓기 
             # - 내려 놓는 높이 계산 = 바닥 높이 + 물체 뎁스/2 - 그리퍼 옵셋(그리퍼 완전 닫힌 높이 - 그리퍼 물체 잡은 높이)
             griper_offset = get_gripper_depth_offset(item.size.height)
             self.get_logger().info(f'회전 스테이지에 내려놓기 시작 > griper_offset: {griper_offset}')
 
-            pick_z = 143.232 + item.size.depth/2 - griper_offset
+            pick_z = 143.232 - 5 + item.size.depth/2 - griper_offset
             self.get_logger().info(f'회전 스테이지에 내려놓기 시작 > item_size.depth/2: {item.size.depth/2}')
-
+            # 물체 내려놓기
             self.robot.move_to_pose(Pose3D(-62.725, -581.752, pick_z, 101.222, 178.691, 11.537))
 
             # 그리퍼 열기
@@ -389,21 +398,21 @@ class ExecutePackingServer(Node):
             # # ============회전 종료 > 잡기 및 들어올리기 ============
             self.get_logger().info(f'회전 종료 > 잡기 및 들어올리기')
             # 그리퍼 물체 잡는 방향으로 회전
-            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537)) 
+            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) 
             # 그리퍼 오픈
             self.robot.open_gripper()
             # 하강 및 물체 접근
             # - 잡는 높이 계산 = 바닥 높이 + 물체 뎁스/2 - 그리퍼 옵셋(그리퍼 완전 닫힌 높이 - 그리퍼 물체 잡은 높이)
             griper_offset = get_gripper_depth_offset(item.size.height)
             self.get_logger().info(f'회전 종료 > 잡기 및 들어올리기 > griper_offset: {griper_offset}')
-            pick_z = 143.232 + item.size.depth/2 - griper_offset
+            pick_z = 143.232 - 5 + item.size.depth/2 - griper_offset
             self.get_logger().info(f'회전 종료 > 잡기 및 들어올리기 > item_size.depth/2: {item.size.depth/2}')
             self.robot.move_to_pose(Pose3D(-62.725, -581.752, pick_z, 101.222, 178.691, 11.537))
             # 잡기
             self.get_logger().info(f'회전 종료 > 잡기 및 들어올리기 > item.size.height: {item.size.height}')
             self.robot.close_gripper(width_mm=item.size.height)
             # 다음 이동을 위한 정위치로 올라오기(다음 작업부터 상대좌표로 이동함)
-            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 + 200, 101.222, 178.691, 11.537)) 
+            self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) 
 
 
     # 박스에 놓기
@@ -428,15 +437,15 @@ class ExecutePackingServer(Node):
             # 회전스테이션을 거쳤다면
             self.robot.move_to_relative_pose(Pose3D(placement.pose.x, placement.pose.y, 0,0,0,0)) 
             self.robot.move_to_relative_pose(Pose3D(0,0,placement.pose.z -200,0,0,0)) # 바닥에서 올라온 높이가 200임
-            self.robot.close_gripper(width_mm=item.size.height +1) # 잡고 있는 상태에서 1mm열림
+            self.robot.close_gripper(width_mm=item.size.height +3) # 잡고 있는 상태에서 1mm열림
             self.robot.move_to_relative_pose(Pose3D(0,0,200,0,0,0)) 
             self.robot.move_to_relative_pose(Pose3D(0,0,0,0,0,0)) # 마지막 작업 스킵되는 문제로 빈 move 작성
         else:
-            # 회전스테이션을 거쳤치지 않았
-            self.robot.move_to_pose(Pose3D(placement.pose.x-62.725, placement.pose.y-581.752, 143.232 + 200, 101.222, 178.691, 11.537)) # 경유 지점
-            # self.robot.move_to_relative_pose(Pose3D(placement.pose.x -62.725, placement.pose.y -581.752, 143.232+200, 101.222, 178.691, 11.537)) 
+            # 회전스테이션을 거쳤치지 않았다면
+            self.robot.move_to_pose(Pose3D(placement.pose.x-62.725, placement.pose.y-581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점
+            # self.robot.move_to_relative_pose(Pose3D(placement.pose.x -62.725, placement.pose.y -581.752, 143.232 - 5+200, 101.222, 178.691, 11.537)) 
             self.robot.move_to_relative_pose(Pose3D(0,0,placement.pose.z -200,0,0,0)) # 바닥에서 올라온 높이가 200임
-            self.robot.close_gripper(width_mm=item.size.height +1) # 잡고 있는 상태에서 1mm열림
+            self.robot.close_gripper(width_mm=item.size.height +3) # 잡고 있는 상태에서 1mm열림
             self.robot.move_to_relative_pose(Pose3D(0,0,200,0,0,0)) 
             self.robot.move_to_relative_pose(Pose3D(0,0,0,0,0,0)) # 마지막 작업 스킵되는 문제로 빈 move 작성
 
@@ -449,7 +458,7 @@ class ExecutePackingServer(Node):
 
         #============ 테스트 시작============
         # self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0))
-        # self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 +200 , 101.222, 178.691, 11.537)) 
+        # self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 +200 , 101.222, 178.691, 11.537)) 
         #============ 테스트 종료============
 
 
@@ -467,6 +476,14 @@ class ExecutePackingServer(Node):
     # 실행 콜백 
     def execute_callback(self, goal_handle):
         self.get_logger().info("execute_callback()!!!")
+
+        # # 스캔위치
+        # self.robot.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90))
+        # 
+        # self.robot.close_gripper()
+        # return
+
+
 
         # 로봇 실행중
         self._busy = True

@@ -1,14 +1,17 @@
-ros2 run cashier_execute_packing execute_packing_server
-_robot_id =dsr01
-_robot_model =m0609
-_srv_name_prefix =
-_topic_name_prefix =
-[INFO] [1773315093.397461488] [dsr01.execute_packing_server]: goal_callback()!!!
-[INFO] [1773315093.398170411] [dsr01.execute_packing_server]: execute_callback()!!!
-[INFO] [1773315095.571301812] [dsr01.execute_packing_server]: 잡는 높이 조정(물체 중심 z - 그리퍼 너비에 따른 뎁스 오프셋값) 229.500 - 0.400 = 229.100
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384035.839840182] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 0.0, 90
+[INFO] [1773384035.840353405] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315104.071324764] [dsr01.execute_packing_server]: 물체 요 확인: 45.0
+[INFO] [1773384036.838957606] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 15.5
+[INFO] [1773384036.839178324] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 3.6000000000000227
 Start moving gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -18,8 +21,9 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315109.571969234] [dsr01.execute_packing_server]: 물체 정렬 yaw 확인: 45.0
-[INFO] [1773315111.072052509] [dsr01.execute_packing_server]: packingPlan.item.pose.yaw 확인: 0.0
+[INFO] [1773384043.739509222] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 85, height: 48
+ 변경 width: 48, height: 85
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -29,12 +33,57 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315126.272290312] [dsr01.execute_packing_server]: 회전 수행 > step : 0.0, 0.0, 90
-[INFO] [1773315126.272510296] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384048.738947232] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 90, 0.0
+[INFO] [1773384048.739174959] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315127.072020883] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 7.5
-[INFO] [1773315127.072233834] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 0.3999999999999986
+[INFO] [1773384052.839679995] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 15.5
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384057.594570348] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 85
+[INFO] [1773384064.739455084] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 48, depth: 31
+ 변경 width: 31, height: 48
+[INFO] [1773384064.739680770] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 24.0
+[INFO] [1773384068.639749096] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > griper_offset 확인: 16.5
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384072.339999958] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 0.0, 90
+[INFO] [1773384072.340233929] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384075.040083268] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 24.0
+[INFO] [1773384075.040300218] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 16.5
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384081.640084648] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 31, height: 85
+ 변경 width: 85, height: 31
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384086.140029790] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384089.768899029] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > griper_offset: 1.1000000000000227
+[INFO] [1773384089.769152360] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item_size.depth/2: 24.0
+[INFO] [1773384092.739938731] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item.size.height: 31
 Start moving gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -43,8 +92,12 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315130.938175025] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: 7.5
-[INFO] [1773315130.938406892] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: 0.3999999999999986
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384102.511462926] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: 아이셔
+[INFO] [1773384102.511715619] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 16.5
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -54,41 +107,112 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315139.272660161] [dsr01.execute_packing_server]: 회전 수행 > step : 0.0, 90, 0.0
-[INFO] [1773315139.272871075] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
-Start opening gripper.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315143.372803969] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 7.5
+[INFO] [1773384117.140661708] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: 0.0
 Start moving gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315147.421818600] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 80
-[INFO] [1773315154.773118233] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 25.0
-[INFO] [1773315158.073029334] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 25.0
+[INFO] [1773384120.963770062] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
+[INFO] [1773384120.963992335] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 
+[INFO] [1773384128.940493517] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > griper_offset: 16.5
+[INFO] [1773384128.940698800] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > item_size.depth/2: 26.0
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-[INFO] [1773315161.873274565] [dsr01.execute_packing_server]: 회전 수행 > step : 0.0, 0.0, 90
-[INFO] [1773315161.873520343] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+[INFO] [1773384135.740814054] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 90, 0.0
+[INFO] [1773384135.741035831] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315164.572805241] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 25.0
-[INFO] [1773315164.573018617] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 1.3999999999999986
+[INFO] [1773384138.640793843] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 26.0
 Start moving gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773315168.022428114] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전  > item.size.depth/2 확인: 25.0
-[INFO] [1773315168.022655148] [dsr01.execute_packing_server]: step.rz_deg  > 올라오기 > rz 90도 회전 > griper_offset 확인: 1.3999999999999986
+[INFO] [1773384143.293866227] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 85
+[INFO] [1773384150.441117669] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 120, depth: 52
+ 변경 width: 52, height: 120
+[INFO] [1773384150.441329254] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 60.0
+[INFO] [1773384154.041122017] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > griper_offset 확인: 16.5
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384157.741176402] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 0.0, 90
+[INFO] [1773384157.741397384] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384160.141282768] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 60.0
+[INFO] [1773384160.141498290] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 16.5
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384166.340993382] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 52, height: 85
+ 변경 width: 85, height: 52
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384170.841183394] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384174.565628633] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > griper_offset: 4.599999999999994
+[INFO] [1773384174.565842822] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item_size.depth/2: 60.0
+[INFO] [1773384177.141829049] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item.size.height: 52
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384188.938783406] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: 카라멜
+[INFO] [1773384188.939020298] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 5.199999999999989
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384200.842456097] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: 0.0
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384205.266236516] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
+[INFO] [1773384205.266452311] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 
+[INFO] [1773384213.242192186] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > griper_offset: 5.199999999999989
+[INFO] [1773384213.242422652] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > item_size.depth/2: 16.0
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -96,5 +220,281 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384220.342458304] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 0.0, 90
+[INFO] [1773384220.342680946] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384221.342117233] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 16.0
+[INFO] [1773384221.342329820] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 5.199999999999989
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384228.342382417] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 82, height: 54
+ 변경 width: 54, height: 82
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384233.142370826] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 90, 0.0
+[INFO] [1773384233.142582449] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384237.242424275] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 16.0
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384242.010775120] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 82
+[INFO] [1773384249.142535778] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 54, depth: 32
+ 변경 width: 32, height: 54
+[INFO] [1773384249.142751393] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 27.0
+[INFO] [1773384252.952584938] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > griper_offset 확인: 15.0
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384256.743319343] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 0.0, 90
+[INFO] [1773384256.743801025] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384259.442703879] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 27.0
+[INFO] [1773384259.442917016] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 15.0
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384266.243148983] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 32, height: 82
+ 변경 width: 82, height: 32
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384270.843680293] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384274.565809551] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > griper_offset: 1.1999999999999886
+[INFO] [1773384274.566404431] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item_size.depth/2: 27.0
+[INFO] [1773384277.443693670] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item.size.height: 32
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+An internal- or external grip is detected.
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384290.548362305] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: 나비
+[INFO] [1773384290.548673250] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 9.0
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384302.443627606] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: 0.0
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384306.467050000] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
+[INFO] [1773384306.467282934] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 
+[INFO] [1773384314.443658444] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > griper_offset: 9.0
+[INFO] [1773384314.443883858] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > item_size.depth/2: 25.5
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384321.343813832] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 90, 0.0
+[INFO] [1773384321.344040738] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384324.243630522] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 25.5
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384328.800415750] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 65
+[INFO] [1773384336.043748336] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 91, depth: 51
+ 변경 width: 51, height: 91
+[INFO] [1773384336.043985176] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 45.5
+[INFO] [1773384339.544406832] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > griper_offset 확인: 9.0
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384343.443895020] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384345.972497277] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > griper_offset: 9.0
+[INFO] [1773384345.972711792] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item_size.depth/2: 45.5
+[INFO] [1773384348.744082815] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item.size.height: 65
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384358.113414956] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: 홀스
+[INFO] [1773384358.113639113] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 4.900000000000006
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384372.444874460] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: 0.0
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384376.467753134] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
+[INFO] [1773384376.467971086] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 
+[INFO] [1773384384.444512077] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > griper_offset: 4.900000000000006
+[INFO] [1773384384.444714572] [dsr01.execute_packing_server]: 회전 스테이지에 내려놓기 시작 > item_size.depth/2: 12.5
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384391.544456587] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 0.0, 90
+[INFO] [1773384391.544671844] [dsr01.execute_packing_server]:  ====================rz 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384392.344563916] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > item.size.depth/2 확인: 12.5
+[INFO] [1773384392.344811386] [dsr01.execute_packing_server]: step.rz_deg  > 잡기 > griper_offset 확인: 4.900000000000006
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384399.145004635] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 81, height: 53
+ 변경 width: 53, height: 81
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384403.945002469] [dsr01.execute_packing_server]: 회전 수행 > 현재 회전 : 0.0, 90, 0.0
+[INFO] [1773384403.945241960] [dsr01.execute_packing_server]: ====================ry 90도 회전 수행====================
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384408.045038564] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 >  item.size.depth/2 확인: 12.5
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384412.699318199] [dsr01.execute_packing_server]: step.ry_deg > 45도 잡기 > width_mm = item.size.height 확인: 81
+[INFO] [1773384419.845521918] [dsr01.execute_packing_server]: <길이 스왑> 
+기존 width: 53, depth: 25
+ 변경 width: 25, height: 53
+[INFO] [1773384419.845734772] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: 26.5
+[INFO] [1773384423.645699269] [dsr01.execute_packing_server]: step.ry_deg  > 135도 놓기  > griper_offset 확인: 14.5
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384427.445251547] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기
+Start opening gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384430.070302957] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > griper_offset: 14.5
+[INFO] [1773384430.070516547] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item_size.depth/2: 26.5
+[INFO] [1773384433.145447892] [dsr01.execute_packing_server]: 회전 종료 > 잡기 및 들어올리기 > item.size.height: 81
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+Start moving gripper.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773384442.615658796] [dsr01.execute_packing_server]: 패킹 작업 완료
 
