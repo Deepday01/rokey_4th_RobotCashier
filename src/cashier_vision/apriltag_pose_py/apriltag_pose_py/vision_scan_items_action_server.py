@@ -34,7 +34,7 @@ class VisionScanItemsActionServer(Node):
     def __init__(self):
         super().__init__("vision_scan_items_action_server")
 
-        default_model_path = os.path.expanduser("~/Downloads/best_fin.pt")
+        default_model_path = os.path.expanduser("~/rokey_4th_RobotCashier/src/cashier_vision/best_fin.pt")
         default_specs_path = os.path.expanduser(
             "~/rokey_4th_RobotCashier/src/cashier_vision/apriltag_pose_py/config/item_specs.json"
         )
