@@ -10,6 +10,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Item.msg"
   "srv/SrvDepthPosition.srv"
   "action/VoiceSession.action"
+  "srv/ComputePackingPlan.srv"
+  "action/VoiceSession.action"
+  "action/ScanItems.action"
+  "action/ExecutePacking.action"
 )
 
 # 런타임 의존성 내보내기
