@@ -56,7 +56,8 @@ def validate_request_items_and_places(pick_items: List, place_items: List) -> No
     used_indices = set()
     for index, placement in enumerate(place_items):
         object_index = placement.object_index
-        if object_index < 0 or object_index >= len(pick_items):
+        # if object_index < 0 or object_index >= len(pick_items): # origin 
+        if object_index < 0 :
             raise ValueError(f"Invalid object_index at place_items[{index}]: {object_index}")
         if object_index in used_indices:
             raise ValueError(f"Duplicated object_index at place_items[{index}]: {object_index}")
@@ -79,7 +80,6 @@ def makePlan(task_index: int, item, placement) -> PackingPlan:
     # 박스 플랜
     box_plan = build_box_plan(
         placement=placement,
-        # TODO: station_pick_pose 계산해서 만들기
         station_pick_pose=init_object_pick_plan.pick_pose
     )
 
@@ -95,28 +95,18 @@ def makePlan(task_index: int, item, placement) -> PackingPlan:
 # 플랜 만들기
 def make_packing_plan_list(pick_items: List, place_items: List, logger=None) -> PackingPlanList:
     # 아이템 검증 
-    validate_request_items_and_places(pick_items=pick_items, place_items=place_items)
+    # todo 검증코드 필요시 추가하기
+    # validate_request_items_and_places(pick_items=pick_items, place_items=place_items)
     # 클라이언트 데이터 핸들링 가능한 아이템 플레이스먼트 변환
     itemList, placementList = convert_request_to_internal_models(pick_items=pick_items, place_items=place_items)
     # 플랜 리스트 만들기
     planList: List[PackingPlan] = []
     for index, placement in enumerate(placementList, start=1):
         item = itemList[placement.object_index]
-
-        #==============테스트=====================
-        # logger().info(f"item<<확인1 x: {item.pose.x}")
-        # logger().info(f"item<<확인1 y: {item.pose.y}")
-        # logger().info(f"item<<확인1 z: {item.pose.z}")
-        # logger().info(f"item<<확인1 roll: {item.pose.roll}")
-        # logger().info(f"item<<확인1 pitch: {item.pose.pitch}")
-        # logger().info(f"item<<확인1 yaw: {item.pose.yaw}")
-        #==============테스트=====================  
-
-
         planList.append(makePlan(task_index=index, item=item, placement=placement))
     return PackingPlanList(planList=planList)
 
-
+# todo 
 def execute_plan_with_callbacks(
     planList: PackingPlanList,
     excute_init_object_pick,
@@ -127,7 +117,11 @@ def execute_plan_with_callbacks(
     for plan in planList.planList:
         excute_init_object_pick(plan)
         excute_align_object(plan)
-        # execute_pick_and_place_to_box(plan)
+        execute_pick_and_place_to_box(plan)
+
+    return True
+
+  
 
 
 def build_station_place_pose_from_item_z(item) -> Pose3D:

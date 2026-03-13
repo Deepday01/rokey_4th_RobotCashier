@@ -30,87 +30,68 @@ class ExecutePackingClient(Node):
         self.get_logger().info("3️⃣ Goal 메시지 생성")
         goal_msg = ExecutePacking.Goal()
 
+      
         # -----------------------------
         # Item 생성
         # -----------------------------
         item1 = Item()
         item1.item_id = "item_001"
-        item1.name = "이클립스"
-        item1.width = 80
-        item1.depth = 15
-        item1.height = 50
-        item1.durability = 5
-        item1.x = 250.6
-        item1.y = 277.1
+        item1.name = "에크론"
+        item1.width = 125
+        item1.depth = 34   
+        item1.height = 44
+        item1.durability = 4
+        item1.x = 403.853
+        item1.y = 162.238
         item1.z = 0.0
         item1.roll = 0.0
         item1.pitch = 0.0
         item1.yaw = 0.0
-        self.get_logger().info(
-            f"   item1 생성 완료 | id={item1.item_id} "
-            f"pose=({item1.x},{item1.y},{item1.z})"
-        )
-
 
         # -----------------------------
         # Placement 생성
         # -----------------------------
         place1 = Placement()
         place1.object_index = 0
-        place1.x = 300.795
-        place1.y = -130.951
-        place1.z = 200.0
+        place1.x = 220.0 + 50
+        place1.y = 20.0 + 50
+        place1.z = 5.0 + 150
         place1.roll = 0.0
         place1.pitch = 0.0
         place1.yaw = 0.0
 
-        self.get_logger().info(
-            f"   place1 생성 | object_index={place1.object_index} "
-            f"pose=({place1.x},{place1.y},{place1.z})"
-        )
 
-        # -----------------------------
+  # -----------------------------
         # Item 생성
         # -----------------------------
         item2 = Item()
         item2.item_id = "item_002"
-        item2.name = "에크론"
-        item2.width = 120
-        item2.depth = 34
-        item2.height = 44
-        item2.durability = 4
-        item2.x = 403.853
-        item2.y = 162.238
+        item2.name = "이클립스"
+        item2.width = 85
+        item2.depth = 31
+        item2.height = 48
+        item2.durability = 5
+        item2.x = 250.6
+        item2.y = 277.1
         item2.z = 0.0
         item2.roll = 0.0
         item2.pitch = 0.0
         item2.yaw = 0.0
-
-        self.get_logger().info(
-            f"   item2 생성 완료 | id={item2.item_id} "
-            f"pose=({item2.x},{item2.y},{item2.z})"
-        )
+   
 
         # -----------------------------
         # Placement 생성
         # -----------------------------
         place2 = Placement()
-        place2.object_index = 1 
-        place2.x = 403.795
-        place2.y = -149.951
-        place2.z = 294.518
+        place2.object_index = 1
+        place2.x = 220.0 + 50
+        place2.y = 20.0 + 50
+        place2.z = 5.0 + 150
         place2.roll = 90.0
         place2.pitch = 0.0
         place2.yaw = 0.0
 
-        self.get_logger().info(
-            f"   place2 생성 | object_index={place2.object_index} "
-            f"pose=({place2.x},{place2.y},{place2.z})"
-        )
-
-
-
-
+      
 
         # -----------------------------
         # Item 생성
@@ -129,19 +110,15 @@ class ExecutePackingClient(Node):
         item3.pitch = 0.0
         item3.yaw = 0.0
 
-        self.get_logger().info(
-            f"   item2 생성 완료 | id={item2.item_id} "
-            f"pose=({item2.x},{item2.y},{item2.z})"
-        )
-
+    
         # -----------------------------
         # Placement 생성
         # -----------------------------
         place3 = Placement()
         place3.object_index = 2 
-        place3.x = 403.795
-        place3.y = -149.951
-        place3.z = 294.518
+        place3.x = 220.0 + 50
+        place3.y = 20.0 + 50
+        place3.z = 5.0 + 150
         place3.roll = 90.0
         place3.pitch = 90.0
         place3.yaw = 0.0
@@ -164,19 +141,16 @@ class ExecutePackingClient(Node):
         item4.pitch = 0.0
         item4.yaw = 0.0
 
-        self.get_logger().info(
-            f"   item2 생성 완료 | id={item2.item_id} "
-            f"pose=({item2.x},{item2.y},{item2.z})"
-        )
+       
 
         # -----------------------------
         # Placement 생성
         # -----------------------------
         place4 = Placement()
         place4.object_index = 3
-        place4.x = 403.795
-        place4.y = -149.951
-        place4.z = 294.518
+        place4.x = 220.0 + 50
+        place4.y = 20.0 + 50
+        place4.z = 5.0 + 150
         place4.roll = 90.0
         place4.pitch = 90.0
         place4.yaw = 90.0
@@ -199,19 +173,15 @@ class ExecutePackingClient(Node):
         item5.pitch = 0.0
         item5.yaw = 0.0
 
-        self.get_logger().info(
-            f"   item2 생성 완료 | id={item2.item_id} "
-            f"pose=({item2.x},{item2.y},{item2.z})"
-        )
-
+      
         # -----------------------------
         # Placement 생성
         # -----------------------------
         place5 = Placement()
         place5.object_index = 4
-        place5.x = 403.795
-        place5.y = -149.951
-        place5.z = 294.518
+        place5.x = 220.0 + 50
+        place5.y = 20.0 + 50
+        place5.z = 5.0 + 150
         place5.roll = 0.0
         place5.pitch = 90.0
         place5.yaw = 0.0
@@ -234,19 +204,16 @@ class ExecutePackingClient(Node):
         item6.pitch = 0.0
         item6.yaw = 0.0
 
-        self.get_logger().info(
-            f"   item2 생성 완료 | id={item2.item_id} "
-            f"pose=({item2.x},{item2.y},{item2.z})"
-        )
+       
 
         # -----------------------------
         # Placement 생성
         # -----------------------------
         place6 = Placement()
         place6.object_index = 5
-        place6.x = 403.795
-        place6.y = -149.951
-        place6.z = 294.518
+        place6.x = 220.0 + 50
+        place6.y = 20.0 + 50
+        place6.z = 5.0 + 150
         place6.roll = 0.0
         place6.pitch = 90.0
         place6.yaw = 90.0
