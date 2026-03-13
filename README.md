@@ -130,3 +130,22 @@ parameters=['config/vision.yaml']
 필요하다면 적극활용, 아직 어렵다면 PASS
 
 </aside>
+
+
+
+# 실행법
+## 1. workflow node
+### 단독 실행법
+```
+cd ~/cashier_ws/  
+source install/setup.bash   
+ros2 run cashier_workflow workflow_node  
+```
+
+### launch 파일로 실행
+테스트용 더미 런치  
+더미 노드에서 필요한 부분 주석처리해서 사용.  
+```
+ros2 launch cashier_workflow demo_split.launch.py 
+ros2 launch cashier_workflow demo_split_dev.launch.py debug_mode:=true 
+```
