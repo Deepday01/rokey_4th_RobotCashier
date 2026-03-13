@@ -11,9 +11,21 @@
 
 <img width="689" height="490" alt="image" src="https://github.com/user-attachments/assets/packing_system_architecture.png" />
 
-*ROS2 기반 자동 포장 시스템의 노드 구조와 데이터 흐름을 나타냅니다.*
 
-여러 ROS2 노드가 협력하여 **사용자 음성 인식 → 물체 인식 → packing 계획 생성 → 포장 실행**의 전체 흐름을 수행합니다.
+### 노드 구성
+
+**Main Node**
+
+- workflow_node
+
+**Sub Nodes**
+
+- voice_node  
+- vision_node  
+- plan_packing_node  
+- execute_packing_node  
+
+각 노드는 ROS2 기반으로 통신하며 workflow node가 전체 시스템 흐름을 제어합니다.
 
 ---
 
@@ -27,7 +39,7 @@
 
 <img width="321" height="591" alt="image" src="https://github.com/user-attachments/assets/packing_main_flow.png" />
 
-*물체 입력부터 packing plan 생성 및 실행까지의 전체 시스템 흐름*
+*사용자 인터랙션부터 로봇 적재까지의 전체 시스템 흐름*
 
 ---
 
@@ -40,17 +52,103 @@
 
 ---
 
+### 🔹 Workflow Node Flow
+
+<p align="center">
+<img width="400" src="WORKFLOW_FLOW_IMAGE_URL">
+</p>
+
+workflow node는 전체 시스템의 **중앙 제어 역할**을 수행하며 각 노드를 순차적으로 실행합니다.
+
+주요 동작 흐름
+
+1. 시스템 시작
+2. voice_node 실행 (wake-up 대기)
+3. vision_node 실행 (물체 인식)
+4. voice_node 재실행 (물품 제외 요청 처리)
+5. plan_packing_node 실행 (적재 계획 계산)
+6. execute_packing_node 실행 (로봇 적재 수행)
+
+---
+
+### 🔹 Voice Node Flow
+
+<p align="center">
+<img width="400" src="VOICE_FLOW_IMAGE_URL">
+</p>
+
+voice node는 사용자 음성 인터랙션을 담당합니다.
+
+주요 기능
+
+- Wake-up word 감지
+- 사용자 음성 명령 인식
+- 제외할 물품 확인
+
+---
+
+### 🔹 Vision Node Flow
+
+<p align="center">
+<img width="400" src="VISION_FLOW_IMAGE_URL">
+</p>
+
+vision node는 계산대에 놓인 물체 정보를 인식합니다.
+
+주요 기능
+
+- QR 코드 인식
+- 물체 식별
+- 3D 형태 추정 (AI 기반)
+- 물체 정보를 DB에 저장
+
+---
+
+### 🔹 Packing Plan Node Flow
+
+<p align="center">
+<img width="400" src="PLAN_FLOW_IMAGE_URL">
+</p>
+
+plan_packing node는 **물체 적재 계획을 계산**합니다.
+
+주요 기능
+
+- 물체 크기 정보 입력
+- 배치 후보 생성
+- 최적 적재 위치 계산
+- packing plan 반환
+
+---
+
+### 🔹 Execute Packing Node Flow
+
+<p align="center">
+<img width="400" src="EXECUTE_FLOW_IMAGE_URL">
+</p>
+
+execute_packing node는 **로봇을 제어하여 실제 적재 동작을 수행**합니다.
+
+주요 기능
+
+- packing plan 입력
+- 로봇 경로 생성
+- pick & place 수행
+- 적재 완료 확인
+
+---
+
 ### 🔹 Packing Plan 생성 로직
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/packing_plan_flow1.png" width="400">
+<img width="400" src="PACKING_ALGORITHM_FLOW1">
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/packing_plan_flow2.png" width="400">
+<img width="400" src="PACKING_ALGORITHM_FLOW2">
 </p>
 
-*입력된 물체 정보를 기반으로 배치 순서와 위치를 계산하는 과정*
+*물체 정보 입력 → packing 계획 계산 → 로봇 적재 실행 과정*
 
 ---
 
