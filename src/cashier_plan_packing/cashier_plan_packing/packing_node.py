@@ -167,6 +167,8 @@ class PlanPackingNode(Node):
                 return response
 
             objects = objects_from_request_items(request.items)
+            self.get_logger().info(f"request : {request.items}")
+            self.get_logger().info(f"objects : {objects}")
             self.get_logger().info(f"received {len(objects)} items")
 
             best_placements, best_reward, best_plan, trial_logs, best_post_logs = run(objects)
