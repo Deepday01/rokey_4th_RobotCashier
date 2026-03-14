@@ -129,3 +129,9 @@ def _normalize_rotation_delta(angle: float) -> int:
         return 0
     else:
         raise ValueError(f"invalid rotation delta {normalized}")
+    
+
+
+
+
+    

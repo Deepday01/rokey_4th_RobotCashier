@@ -479,7 +479,7 @@ class ExecutePackingServer(Node):
 
         # # 스캔위치
         # self.robot.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90))
-        # 
+        
         # self.robot.close_gripper()
         # return
 
@@ -497,9 +497,9 @@ class ExecutePackingServer(Node):
             self.get_logger().info(f"계획 작성 시작")
 
             packingPlanList: PackingPlanList = make_packing_plan_list(
-                pick_items=request.pick_items, # 클라이언트에서 정의된 접근 변수값 // pick_items은 인터페이스의 item 이다
+                pick_items=request.pick_items,
                 place_items=request.place_items,
-                logger=self.get_logger
+                logger=self.get_logger(),
             )
             self.get_logger().info(f"계획 작성 완료")
 

@@ -4,6 +4,10 @@ from .config import *
 
 from .rotation_planner import make_align_plan
 
+from dataclasses import asdict
+import json
+
+
 def get_approach_pose(target_pose: Pose3D, offset_z: float = APPROACH_OFFSET_Z) -> Pose3D:
     return Pose3D(
         x=target_pose.x,
@@ -64,9 +68,21 @@ def validate_request_items_and_places(pick_items: List, place_items: List) -> No
         used_indices.add(object_index)
 
 
-def convert_request_to_internal_models(pick_items: List, place_items: List) -> Tuple[List[ItemState], List[PlacementState]]:
-    items = [item_from_ros_msg(item_msg) for item_msg in pick_items] # item_msg는 클라이언트의 item1 = Item() 다
+def convert_request_to_internal_models(
+    pick_items: List,
+    place_items: List,
+    logger=None,
+) -> Tuple[List[ItemState], List[PlacementState]]:
+    items = [item_from_ros_msg(item_msg) for item_msg in pick_items]
     placements = [placement_from_ros_msg(placement_msg) for placement_msg in place_items]
+
+    _log(
+        logger,
+        "info",
+        f"[MODEL_CONVERT] 변환 시작 | pick_items={len(items)}, place_items={len(placements)}",
+    )
+    _dump_converted_models(items=items, placements=placements, logger=logger)
+
     return items, placements
 
 # 플랜 생성(하나 생성)
@@ -94,16 +110,19 @@ def makePlan(task_index: int, item, placement) -> PackingPlan:
 
 # 플랜 만들기
 def make_packing_plan_list(pick_items: List, place_items: List, logger=None) -> PackingPlanList:
-    # 아이템 검증 
-    # todo 검증코드 필요시 추가하기
     # validate_request_items_and_places(pick_items=pick_items, place_items=place_items)
-    # 클라이언트 데이터 핸들링 가능한 아이템 플레이스먼트 변환
-    itemList, placementList = convert_request_to_internal_models(pick_items=pick_items, place_items=place_items)
-    # 플랜 리스트 만들기
+
+    itemList, placementList = convert_request_to_internal_models(
+        pick_items=pick_items,
+        place_items=place_items,
+        logger=logger,
+    )
+
     planList: List[PackingPlan] = []
     for index, placement in enumerate(placementList, start=1):
         item = itemList[placement.object_index]
         planList.append(makePlan(task_index=index, item=item, placement=placement))
+
     return PackingPlanList(planList=planList)
 
 # todo 
@@ -132,4 +151,46 @@ def build_station_place_pose_from_item_z(item) -> Pose3D:
         roll=ROTATION_STATION_PLACE_BASE_POSE.roll,
         pitch=ROTATION_STATION_PLACE_BASE_POSE.pitch,
         yaw=ROTATION_STATION_PLACE_BASE_POSE.yaw,
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#=============================로그
+
+
+
+def _log(logger, level: str, message: str) -> None:
+    if logger is None:
+        print(message)
+        return
+
+    log_fn = getattr(logger, level, None)
+    if callable(log_fn):
+        log_fn(message)
+    else:
+        logger.info(message)
+
+
+def _dump_converted_models(items: List[ItemState], placements: List[PlacementState], logger=None) -> None:
+    payload = {
+        "items": [asdict(item) for item in items],
+        "placements": [asdict(placement) for placement in placements],
+    }
+
+    formatted = json.dumps(payload, ensure_ascii=False, indent=2)
+    _log(
+        logger,
+        "info",
+        "[MODEL_CONVERT] ROS Goal -> Internal Model 변환 결과\n" + formatted,
     )
