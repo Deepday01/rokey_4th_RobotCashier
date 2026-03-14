@@ -128,7 +128,7 @@ def placements_to_response_msgs(placements):
         local_cz = float(p.position[2] + sz / 2.0)
 
         msg.x = bx + local_cx
-        msg.y = by - local_cy
+        msg.y = by + local_cy
         msg.z = bz + local_cz
 
         msg.roll = float(p.rotation_rpy[0])
