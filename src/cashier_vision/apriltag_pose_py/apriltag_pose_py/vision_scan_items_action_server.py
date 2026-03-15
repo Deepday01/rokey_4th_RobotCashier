@@ -34,7 +34,7 @@ class VisionScanItemsActionServer(Node):
     def __init__(self):
         super().__init__("vision_scan_items_action_server")
 
-        default_model_path = os.path.expanduser("~/Downloads/best_fin.pt")
+        default_model_path = os.path.expanduser("~/rokey_4th_RobotCashier/src/cashier_vision/best_fin.pt")
         default_specs_path = os.path.expanduser(
             "~/rokey_4th_RobotCashier/src/cashier_vision/apriltag_pose_py/config/item_specs.json"
         )
@@ -52,14 +52,14 @@ class VisionScanItemsActionServer(Node):
 
             # yolo
             "model_path": default_model_path,
-            "conf_thres": 0.15,
+            "conf_thres": 0.25,
             "iou_thres": 0.45,
             "max_det": 20,
             "imgsz": 960,
 
-            # action
-            "scan_duration_sec": 4.0,
-            "feedback_hz": 5.0,
+            # action -------------- 프레임 수 증가
+            "scan_duration_sec": 6.0,
+            "feedback_hz": 6.0,
 
             # apriltag / homography
             "tag_family": "tag36h11",
@@ -132,6 +132,12 @@ class VisionScanItemsActionServer(Node):
             # qr: 화면 표시만
             "enable_fullframe_qr": True,
 
+            # candy 안정화 / 하단 차단
+            "candy_single_mode": True,
+            "candy_bottom_block_enable": True,
+            "candy_bottom_block_margin_px": 10.0,
+            "candy_bottom_block_fallback_ratio": 0.78,
+
             # debug draw flags
             "draw_tag_boxes": False,
             "draw_workspace_text": False,
@@ -201,6 +207,11 @@ class VisionScanItemsActionServer(Node):
 
         self.workspace_size_mm = float(self.workspace_size_mm)
         self.enable_fullframe_qr = bool(self.enable_fullframe_qr)
+
+        self.candy_single_mode = bool(self.candy_single_mode)
+        self.candy_bottom_block_enable = bool(self.candy_bottom_block_enable)
+        self.candy_bottom_block_margin_px = float(self.candy_bottom_block_margin_px)
+        self.candy_bottom_block_fallback_ratio = float(self.candy_bottom_block_fallback_ratio)
 
         self.draw_tag_boxes = bool(self.draw_tag_boxes)
         self.draw_workspace_text = bool(self.draw_workspace_text)
@@ -327,6 +338,10 @@ class VisionScanItemsActionServer(Node):
         self.get_logger().info(f"Item specs path: {self.item_specs_json_path}")
         self.get_logger().info(f"QR full-frame enabled: {self.enable_fullframe_qr}")
         self.get_logger().info(f"QR map count: {len(self.qr_map)}")
+        self.get_logger().info(f"scan_duration_sec: {self.scan_duration_sec}")
+        self.get_logger().info(f"feedback_hz: {self.feedback_hz}")
+        self.get_logger().info(f"candy_bottom_block_enable: {self.candy_bottom_block_enable}")
+        self.get_logger().info(f"candy_single_mode: {self.candy_single_mode}")
 
         test_center = self.workspace_to_robot(
             self.workspace_size_mm / 2.0,
@@ -468,6 +483,7 @@ class VisionScanItemsActionServer(Node):
 
             best_by_track: Dict[str, Tuple[float, Item]] = {}
             yaw_history: Dict[str, List[float]] = defaultdict(list)
+            collect_count_by_track: Dict[str, int] = defaultdict(int)
 
             while time.time() < end_time:
                 if goal_handle.is_cancel_requested:
@@ -481,6 +497,8 @@ class VisionScanItemsActionServer(Node):
                 self.process_latest_frame()
 
                 for conf, item, track_key in self.latest_items:
+                    collect_count_by_track[track_key] += 1
+
                     if track_key not in best_by_track or conf > best_by_track[track_key][0]:
                         best_by_track[track_key] = (conf, item)
 
@@ -497,6 +515,8 @@ class VisionScanItemsActionServer(Node):
                 if stable_yaw is not None:
                     item.yaw = float(stable_yaw)
                 final_items.append(item)
+
+            final_items = self.keep_single_candy(final_items, best_by_track, collect_count_by_track)
 
             final_items.sort(key=lambda m: (m.y, m.x))
 
@@ -593,10 +613,8 @@ class VisionScanItemsActionServer(Node):
 
         candidates = []
 
-        # 1) 원본
         candidates.append(img)
 
-        # 2) grayscale
         gray = None
         try:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -604,7 +622,6 @@ class VisionScanItemsActionServer(Node):
         except Exception:
             pass
 
-        # 3) 확대본
         try:
             big = cv2.resize(img, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
             candidates.append(big)
@@ -657,7 +674,6 @@ class VisionScanItemsActionServer(Node):
             except Exception:
                 pass
 
-        # 너무 많은 중복 후보 방지
         unique_candidates = []
         seen = set()
 
@@ -674,7 +690,6 @@ class VisionScanItemsActionServer(Node):
                 unique_candidates.append(c)
                 seen.add(shape_key)
 
-        # pyzbar만 사용
         for c in unique_candidates:
             try:
                 results = qr_decode(c)
@@ -703,6 +718,91 @@ class VisionScanItemsActionServer(Node):
         return raw_list, name_set
 
     # =====================================================
+    # candy bottom block / single candy
+    # =====================================================
+    def point_line_side(self, a_xy, b_xy, p_xy) -> float:
+        ax, ay = float(a_xy[0]), float(a_xy[1])
+        bx, by = float(b_xy[0]), float(b_xy[1])
+        px, py = float(p_xy[0]), float(p_xy[1])
+        return (bx - ax) * (py - ay) - (by - ay) * (px - ax)
+
+    def is_candy_in_bottom_block_region(
+        self,
+        center_xy: Tuple[float, float],
+        tag_centers: Dict[int, Tuple[float, float]],
+        img_shape,
+    ) -> bool:
+        if not self.candy_bottom_block_enable:
+            return False
+
+        h, w = img_shape[:2]
+
+        # fallback: 태그 못 읽으면 화면 하단 비율 기준
+        fallback_y = int(h * self.candy_bottom_block_fallback_ratio)
+
+        if 1 not in tag_centers or 6 not in tag_centers:
+            return float(center_xy[1]) > float(fallback_y)
+
+        p1 = tag_centers[1]
+        p6 = tag_centers[6]
+
+        line_len = math.hypot(float(p6[0]) - float(p1[0]), float(p6[1]) - float(p1[1]))
+        if line_len < 1e-6:
+            return float(center_xy[1]) > float(fallback_y)
+
+        bottom_ref = (float(w) * 0.5, float(h - 1))
+        ref_side = self.point_line_side(p1, p6, bottom_ref)
+        pt_side = self.point_line_side(p1, p6, center_xy)
+
+        if abs(ref_side) < 1e-6:
+            return float(center_xy[1]) > float(fallback_y)
+
+        signed_dist = abs(pt_side) / line_len
+
+        # bottom_ref와 같은 쪽 + 선에서 일정 margin 이상 떨어진 경우만 차단
+        same_side_as_bottom = (ref_side * pt_side) > 0.0
+        return same_side_as_bottom and signed_dist > self.candy_bottom_block_margin_px
+
+    def keep_single_candy(
+        self,
+        final_items: List[Item],
+        best_by_track: Dict[str, Tuple[float, Item]],
+        collect_count_by_track: Dict[str, int],
+    ) -> List[Item]:
+        if not self.candy_single_mode:
+            return final_items
+
+        candy_items = [it for it in final_items if it.name == "candy"]
+        if len(candy_items) <= 1:
+            return final_items
+
+        candy_candidates = []
+        for track_key, (conf, item) in best_by_track.items():
+            if item.name != "candy":
+                continue
+            cnt = collect_count_by_track.get(track_key, 0)
+            candy_candidates.append((track_key, cnt, conf, item))
+
+        if not candy_candidates:
+            return [it for it in final_items if it.name != "candy"]
+
+        candy_candidates.sort(key=lambda x: (x[1], x[2]), reverse=True)
+        keep_track, _, _, keep_item = candy_candidates[0]
+
+        filtered = []
+        candy_kept = False
+
+        for item in final_items:
+            if item.name != "candy":
+                filtered.append(item)
+            else:
+                if not candy_kept:
+                    filtered.append(keep_item)
+                    candy_kept = True
+
+        return filtered
+
+    # =====================================================
     # Main process
     # =====================================================
     def process_latest_frame(self):
@@ -723,7 +823,6 @@ class VisionScanItemsActionServer(Node):
 
             depth = self.latest_depth.copy()
 
-            # 전체 프레임 QR: 화면 표시용만 사용
             if self.enable_fullframe_qr:
                 fullframe_qr_raws, fullframe_qr_names = self.decode_qr_multi_stage_fullframe(color)
             else:
@@ -732,7 +831,7 @@ class VisionScanItemsActionServer(Node):
             self.latest_fullframe_qr_raws = fullframe_qr_raws
             self.latest_fullframe_qr_names = fullframe_qr_names
 
-            H_img_to_ws, tag_boxes = self.compute_workspace_homography(color, debug_img)
+            H_img_to_ws, tag_boxes, tag_centers = self.compute_workspace_homography(color, debug_img)
             workspace_ready = H_img_to_ws is not None and self.H_ws_to_robot is not None
 
             if not workspace_ready:
@@ -805,6 +904,18 @@ class VisionScanItemsActionServer(Node):
                         default_name = names[cls_id] if cls_id < len(names) else f"class_{cls_id}"
 
                     cls_name = self.class_name_map.get(cls_id, str(default_name)).strip()
+
+                    # -----------------------------
+                    # candy 하단 오검출 차단
+                    # AprilTag 1-6 선 아래쪽(bottom side) candy는 무시
+                    # -----------------------------
+                    if cls_name == "candy":
+                        if self.is_candy_in_bottom_block_region(
+                            center_xy=(cx, cy),
+                            tag_centers=tag_centers,
+                            img_shape=color.shape,
+                        ):
+                            continue
 
                     if workspace_ready:
                         ws_center = self.transform_point(H_img_to_ws, (cx, cy))
@@ -908,6 +1019,9 @@ class VisionScanItemsActionServer(Node):
 
                 self.draw_text_with_bg(debug_img, qr_top, (20, 55), qr_color)
 
+            if self.candy_bottom_block_enable:
+                self.draw_text_with_bg(debug_img, "CANDY_BOTTOM_BLOCK:ON", (20, 80), (0, 200, 255))
+
             self.publish_debug(debug_img, stamp)
 
         except Exception as e:
@@ -989,6 +1103,7 @@ class VisionScanItemsActionServer(Node):
         tags = self.detector.detect(gray, estimate_tag_pose=False)
 
         img_pts, ws_pts, tag_boxes = [], [], []
+        tag_centers = {}
 
         for tag in tags:
             tag_id = int(tag.tag_id)
@@ -1000,13 +1115,16 @@ class VisionScanItemsActionServer(Node):
             max_y = int(np.max(corners[:, 1]))
             tag_boxes.append((min_x, min_y, max_x, max_y))
 
+            center = (float(tag.center[0]), float(tag.center[1]))
+            tag_centers[tag_id] = center
+
             if self.draw_tag_boxes:
                 for i in range(4):
                     cv2.line(debug_img, tuple(corners[i]), tuple(corners[(i + 1) % 4]), (0, 255, 0), 2)
 
-                center = tuple(tag.center.astype(int))
-                cv2.circle(debug_img, center, 4, (0, 0, 255), -1)
-                self.draw_text_with_bg(debug_img, f"ID:{tag_id}", (center[0] + 8, center[1] - 8), (255, 0, 0))
+                center_i = tuple(tag.center.astype(int))
+                cv2.circle(debug_img, center_i, 4, (0, 0, 255), -1)
+                self.draw_text_with_bg(debug_img, f"ID:{tag_id}", (center_i[0] + 8, center_i[1] - 8), (255, 0, 0))
 
             if tag_id in self.tag_world_points:
                 img_pts.append([float(tag.center[0]), float(tag.center[1])])
@@ -1022,14 +1140,14 @@ class VisionScanItemsActionServer(Node):
             )
 
         if len(img_pts) < 4:
-            return None, tag_boxes
+            return None, tag_boxes, tag_centers
 
         H, _ = cv2.findHomography(
             np.array(img_pts, dtype=np.float32),
             np.array(ws_pts, dtype=np.float32),
             method=cv2.RANSAC
         )
-        return H, tag_boxes
+        return H, tag_boxes, tag_centers
 
     def compute_workspace_to_robot_homography(self):
         try:
@@ -1168,7 +1286,7 @@ class VisionScanItemsActionServer(Node):
         return yaw_deg
 
     def apply_yaw_reference_shift(self, yaw_deg: float) -> float:
-        return self.normalize_yaw_deg_180(yaw_deg + 90.0)
+        return self.normalize_yaw_deg_180(yaw_deg)
 
     def yaw_to_axis_0_180(self, yaw_deg: float) -> float:
         y = self.normalize_yaw_deg_180(yaw_deg)
