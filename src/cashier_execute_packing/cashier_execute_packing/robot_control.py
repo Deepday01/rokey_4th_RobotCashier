@@ -208,10 +208,11 @@ class RobotController:
             # 1차 놓는 위치 이동('바닥 높이 + 물체 뎁스/2)
             object_lay_approch_z = 8.418 + item.size.depth/2
             self.logger.info(f"step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: {item.size.depth/2}")
-            self.move_to_pose(Pose3D(-148.29, -579.322, object_lay_approch_z, 178.483, -132.87, 87.051)) # y축 회전 135도 접근
+            # self.move_to_pose(Pose3D(-148.29, -579.322, object_lay_approch_z, 178.483, -132.87, 87.051)) # y축 회전 135도 접근 # origin
+            self.move_to_pose(Pose3D(-148.29 + 7, -579.322 , object_lay_approch_z, 178.483, -132.87, 87.051)) # y축 회전 135도 접근 # 보정됨
 
             # 그리퍼 옵셋 이동
-            griper_offset = get_gripper_depth_offset(item.size.height)
+            griper_offset = get_gripper_depth_offset(item.size.height) # origin
             self.move_to_relative_pose(Pose3D(0, 0, griper_offset, 0,0,0), ref=1)
             self.logger.info(f"step.ry_deg  > 135도 놓기  > griper_offset 확인: {griper_offset}")
 
@@ -321,6 +322,8 @@ class ExecutePackingServer(Node):
 
         pick_z = item.pose.z - griper_depth_offset
 
+        self.get_logger().info(f'그리퍼 하강 높이: {pick_z}')
+
         
         # 로봇 물체 접근
         self.robot.move_to_pose(
@@ -334,6 +337,7 @@ class ExecutePackingServer(Node):
             )
         )
 
+
         # yaw 만큼 회전
         self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, item.pose.yaw -90])
         self.get_logger().info(f'물체 회전: {item.pose.yaw}')
@@ -342,8 +346,9 @@ class ExecutePackingServer(Node):
         self.robot.open_gripper()
    
         # 그대로 아래로 내려가기
+        # self.robot.move_to_relative_pose(Pose3D(0,0,-150,0,0,0))
         self.robot.move_to_relative_pose(Pose3D(0,0,-200,0,0,0))
-
+        # return
 
         self.get_logger().info(f'물체 최초 pick 단계 > item.pose.yaw: {item.pose.yaw}')
 
@@ -590,6 +595,7 @@ class ExecutePackingServer(Node):
             self.get_logger().info(f"초기 위치로 이동")
             self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0))
             self.robot.move_ready()
+
 
 
 
