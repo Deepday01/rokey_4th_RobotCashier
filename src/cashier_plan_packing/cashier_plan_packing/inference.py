@@ -14,7 +14,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 # User settings
 # =========================
 CHECKPOINT_PATH = "/home/leeseungmin/Desktop/Doosan/rokey_ws/src/cashier_plan_packing/cashier_plan_packing/checkpoint_heightmap_attention_policy_candidate_split_v2.pth"
-BASKET_SIZE = (180, 130, 75)
+BASKET_SIZE = (160, 120, 75)
 GRID_SIZE = 5
 MAX_OBJECTS = 8
 SUPPORT_THRESHOLD = 0.72
