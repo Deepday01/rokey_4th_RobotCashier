@@ -7,10 +7,10 @@
 # 1. 📦 시스템 설계 및 플로우 차트
 프로젝트의 전체적인 구조와 소프트웨어 흐름도입니다.
 
-## 1-1. 시스템 설계도 (System Architecture)
-
-<img width="689" height="490" alt="image" src="https://github.com/user-attachments/assets/packing_system_architecture.png" />
-
+## 1-1. 노드 설계도 (Node Architecture)
+<p align="center">
+<img width="1429" height="786" alt="Image" src="https://github.com/user-attachments/assets/ef689952-f678-47bb-b265-1b147d71e186" />
+</p>
 
 ### 노드 구성
 
