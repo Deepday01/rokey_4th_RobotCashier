@@ -121,16 +121,27 @@ json_data_2 = """
     }
   ],
   "placements": [
-    { "object_index": 2, "pose": { "x": 245.0, "y": 60.0, "z": 25.0, "roll": 0.0, "pitch": 0.0, "yaw": 90.0 }},
+    { "object_index": 0, "pose": { "x": 245.0, "y": 60.0, "z": 25.0, "roll": 90.0, "pitch": 0.0, "yaw": 0.0 }},
     { "object_index": 5, "pose": { "x": 330.0, "y": 57.5, "z": 25.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
     { "object_index": 1, "pose": { "x": 330.0, "y": 122.5, "z": 17.5, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
     { "object_index": 3, "pose": { "x": 330.0, "y": 122.5, "z": 42.5, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
     { "object_index": 4, "pose": { "x": 282.5, "y": 37.5, "z": 55.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
-    { "object_index": 0, "pose": { "x": 252.5, "y": 127.5, "z": 40.0, "roll": 90.0, "pitch": 0.0, "yaw": 90.0 }},
+    { "object_index": 2, "pose": { "x": 252.5, "y": 127.5, "z": 40.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
     { "object_index": 6, "pose": { "x": 250.0, "y": 82.5, "z": 57.5, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }}
   ]
+
 }
 """
+
+# "placements": [
+#     { "object_index": 2, "pose": { "x": 245.0, "y": 60.0, "z": 25.0, "roll": 0.0, "pitch": 0.0, "yaw": 90.0 }},
+#     { "object_index": 5, "pose": { "x": 330.0, "y": 57.5, "z": 25.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
+#     { "object_index": 1, "pose": { "x": 330.0, "y": 122.5, "z": 17.5, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
+#     { "object_index": 3, "pose": { "x": 330.0, "y": 122.5, "z": 42.5, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
+#     { "object_index": 4, "pose": { "x": 282.5, "y": 37.5, "z": 55.0, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }},
+#     { "object_index": 0, "pose": { "x": 252.5, "y": 127.5, "z": 40.0, "roll": 90.0, "pitch": 0.0, "yaw": 90.0 }},
+#     { "object_index": 6, "pose": { "x": 250.0, "y": 82.5, "z": 57.5, "roll": 0.0, "pitch": 0.0, "yaw": 0.0 }}
+#   ]
 
 # data = json.loads(json_data_1)
 data = json.loads(json_data_2)

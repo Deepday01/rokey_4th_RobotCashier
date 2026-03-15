@@ -208,7 +208,16 @@ class RobotController:
             # 1차 놓는 위치 이동('바닥 높이 + 물체 뎁스/2)
             object_lay_approch_z = 8.418 + item.size.depth/2
             self.logger.info(f"step.ry_deg  > 135도 놓기  > item.size.depth/2 확인: {item.size.depth/2}")
-            # self.move_to_pose(Pose3D(-148.29, -579.322, object_lay_approch_z, 178.483, -132.87, 87.051)) # y축 회전 135도 접근 # origin
+
+
+            # 보상 작업 
+            if object_lay_approch_z - 7 >= 8.418:
+                # 8.418 보다 큰값이면 사용가능
+                object_lay_approch_z = object_lay_approch_z - 7
+            else:
+                # 더 아래로 가면 바닥과충돌하기에 이수치 밑으로는 못감
+                object_lay_approch_z = 8.418
+
             self.move_to_pose(Pose3D(-148.29 + 7, -579.322 , object_lay_approch_z, 178.483, -132.87, 87.051)) # y축 회전 135도 접근 # 보정됨
 
             # 그리퍼 옵셋 이동
@@ -311,6 +320,7 @@ class ExecutePackingServer(Node):
     # 초기 오브젝트 픽
     def excute_init_object_pick(self, packingPlan: PackingPlan) -> None:
         from DSR_ROBOT2 import get_current_posx
+
 
         item = packingPlan.item
 
@@ -579,6 +589,22 @@ class ExecutePackingServer(Node):
         result = ExecutePacking.Result()
 
         try:
+            
+            # # 테스트 시작
+            # self.robot.close_gripper()
+            # # self.robot.move_to_pose(Pose3D(493.0, -75, 240, 90, 180, 90))
+            # # 좌robot.측 상단
+            # # self.robot.move_to_pose(Pose3D(493.0, -75 + 400, 240, 90, 180, 90))
+            # # 좌robot.측 하단
+            # # self.robot.move_to_pose(Pose3D(493.0 -400, -75 + 400, 240, 90, 180, 90))
+            # # 우robot.측 하단
+            # self.robot.move_to_pose(Pose3D(493.0 -400, -75, 240, 90, 180, 90))
+            # # 테스트 종료
+
+            # return
+
+
+
             start_time = time.time()
 
             request = goal_handle.request
@@ -595,6 +621,7 @@ class ExecutePackingServer(Node):
             self.get_logger().info(f"초기 위치로 이동")
             self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0))
             self.robot.move_ready()
+
 
 
 
