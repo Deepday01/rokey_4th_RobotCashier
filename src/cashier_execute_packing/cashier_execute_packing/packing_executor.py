@@ -131,12 +131,22 @@ def execute_plan_with_callbacks(
     excute_init_object_pick,
     excute_align_object,
     execute_pick_and_place_to_box,
+    on_item_completed=None,
     logger=None,
 ) -> None:
-    for plan in planList.planList:
+    total_count = len(planList.planList)
+
+    for completed_count, plan in enumerate(planList.planList, start=1):
         excute_init_object_pick(plan)
         excute_align_object(plan)
         execute_pick_and_place_to_box(plan)
+        
+        if on_item_completed is not None:
+            on_item_completed(
+                completed_count=completed_count,
+                total_count=total_count,
+                plan=plan,
+            )
 
     return True
 

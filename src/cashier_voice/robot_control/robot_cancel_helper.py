@@ -164,7 +164,7 @@ def remove_item_by_pose(target_pose, target_name, drop_pose=None):
 
         # 2. 물체의 방향만큼 그리퍼 회전
         cur_j = get_current_posj()
-        cur_j[5] = cur_j[5] + rz
+        cur_j[5] = cur_j[5] + rz - 90
         movej(cur_j, vel=VELOCITY, acc=ACC)
         mwait()
 

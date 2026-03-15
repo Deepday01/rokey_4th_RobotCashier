@@ -30,6 +30,7 @@ setup(
             'execute_packing_server = cashier_execute_packing.robot_control:main',
             'execute_packing_client = cashier_execute_packing.pick_place_client:main',
 
+
         ],
     },
 )

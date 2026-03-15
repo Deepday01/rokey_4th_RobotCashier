@@ -31,6 +31,7 @@ gripper = RG(GRIPPER_NAME, TOOLCHARGER_IP, TOOLCHARGER_PORT)
 class RobotController:
     def __init__(self, logger=None):
         self.logger = logger
+        self.last_grip_width_mm = None
         
     def initialize(self) -> None:
         from DSR_ROBOT2 import (
@@ -127,19 +128,24 @@ class RobotController:
     # def close_gripper(self, width_mm: int | None = None) -> None:
     def close_gripper(self, width_mm: float | None = None) -> None:
         from DSR_ROBOT2 import mwait
+
         self.logger.info(f'close_gripper 호출 > width_mm={width_mm}')
 
         if width_mm is None:
             gripper.close_gripper()
         else:
-            gripper.move_gripper(width_mm *10) # 기본 단위가 1/10 mm 이기에 10을 곱해줌
+            gripper.move_gripper(width_mm * 10)
+
+        # width 기록
+        self.last_grip_width_mm = width_mm
+
         started = time.time()
         while gripper.get_status()[0]:
             if time.time() - started > GRIPPER_TIMEOUT_SEC:
                 raise RuntimeError("gripper open timeout")
             time.sleep(POLL_INTERVAL_SEC)
-        mwait() 
 
+        mwait()
     def rotate_object(self, step: AlignStep, item: ItemState):
         from DSR_ROBOT2 import get_current_posx
 
@@ -305,15 +311,6 @@ class ExecutePackingServer(Node):
     def excute_init_object_pick(self, packingPlan: PackingPlan) -> None:
         from DSR_ROBOT2 import get_current_posx
 
-        #=================== 테스트 진행 ===============
-        # self.robot.open_gripper()
-
-        # self.robot.close_gripper(width_mm=34)
-
-        # return
-    
-        #=================== 테스트 완료 ===============
-
         item = packingPlan.item
 
         self.get_logger().info(f'물체 최초 pick 시작 > 물체: {item.name}')
@@ -336,13 +333,18 @@ class ExecutePackingServer(Node):
                 yaw = 90,
             )
         )
+
+        # yaw 만큼 회전
+        self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, item.pose.yaw -90])
+        self.get_logger().info(f'물체 회전: {item.pose.yaw}')
+
+
         self.robot.open_gripper()
    
         # 그대로 아래로 내려가기
         self.robot.move_to_relative_pose(Pose3D(0,0,-200,0,0,0))
 
-        # yaw 만큼 회전
-        self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, item.pose.yaw -90])
+
         self.get_logger().info(f'물체 최초 pick 단계 > item.pose.yaw: {item.pose.yaw}')
 
         # # 잡기
@@ -353,12 +355,13 @@ class ExecutePackingServer(Node):
 
         # 물체 정렬 
         self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, -item.pose.yaw])
+        self.get_logger().info(f'물체 정렬: {-item.pose.yaw}')
 
         # 물체 상태 변경
         item.pose.yaw -= item.pose.yaw
         self.get_logger().info(f'물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : {item.pose.yaw}')
 
-  
+
     # 회전 스테이지
     def align_object(self, packingPlan: PackingPlan) -> None:
         from DSR_ROBOT2 import get_current_posx 
@@ -417,53 +420,143 @@ class ExecutePackingServer(Node):
 
     # 박스에 놓기
     def pick_and_place_to_box(self, packingPlan: PackingPlan) -> None:
-
+        from DSR_ROBOT2 import get_current_posx 
 
         item = packingPlan.item
         placement = packingPlan.placement
 
-        # 90도 회전이 필요하다면 회전
-        if packingPlan.placement.pose.yaw != item.pose.yaw:
-            self.robot.movej_to_relative_pose([0,0,0,0,0,90])
-            # 스왑
-            width = item.size.width
-            height = item.size.height
-            item.size.width = height
-            item.size.height = width
-
 
         # 회전스테이션을 거쳤다면
         if packingPlan.align_plan.required:
+            # 90도 회전이 필요하다면 회전
+            if packingPlan.placement.pose.yaw != item.pose.yaw:
+                self.robot.movej_to_relative_pose([0,0,0,0,0,90])
+                self.get_logger().info(f'플레이싱시 필요시 90도 회전')
+
+                # 스왑
+                width = item.size.width
+                height = item.size.height
+                item.size.width = height
+                item.size.height = width
+
             # 회전스테이션을 거쳤다면
-            self.robot.move_to_relative_pose(Pose3D(placement.pose.x, placement.pose.y, 0,0,0,0)) 
+            # self.robot.move_to_relative_pose(Pose3D(placement.pose.x, placement.pose.y, 0,0,0,0)) # origin 
+            self.robot.move_to_relative_pose(Pose3D(placement.pose.x, placement.pose.y-30, 0,0,0,0)) # y값 -30 보정됨
             self.robot.move_to_relative_pose(Pose3D(0,0,placement.pose.z -200,0,0,0)) # 바닥에서 올라온 높이가 200임
-            self.robot.close_gripper(width_mm=item.size.height +3) # 잡고 있는 상태에서 1mm열림
+            
+            
+            # 테스트 로그
+            self.get_logger().info(
+                f"[ITEM] id={item.item_id}, name={item.name}, "
+                f"pose=({item.pose.x:.3f}, {item.pose.y:.3f}, {item.pose.z:.3f}, "
+                f"{item.pose.roll:.3f}, {item.pose.pitch:.3f}, {item.pose.yaw:.3f}), "
+                f"size=({item.size.width}, {item.size.depth}, {item.size.height}), "
+                f"durability={item.durability}"
+            )
+
+
+
+
+            self.robot.close_gripper(width_mm = self.robot.last_grip_width_mm +4) # 잡고 있는 상태에서 2mm열림
+
+            
             self.robot.move_to_relative_pose(Pose3D(0,0,200,0,0,0)) 
             self.robot.move_to_relative_pose(Pose3D(0,0,0,0,0,0)) # 마지막 작업 스킵되는 문제로 빈 move 작성
         else:
             # 회전스테이션을 거쳤치지 않았다면
-            self.robot.move_to_pose(Pose3D(placement.pose.x-62.725, placement.pose.y-581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점
+            # self.robot.move_to_pose(Pose3D(-62.725 + placement.pose.x, -581.752 + placement.pose.y, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점 # origin
+            
+            cur_pose, _ = get_current_posx()
+            self.robot.move_to_pose(Pose3D(-62.725 + placement.pose.x, -581.752 + placement.pose.y -30, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점 -30 y값 보정함 
+            # self.robot.move_to_pose(Pose3D(-62.725 + placement.pose.x, -581.752 + placement.pose.y, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점 origin
+            
+
+            if packingPlan.placement.pose.yaw != item.pose.yaw:
+                self.robot.movej_to_relative_pose([0,0,0,0,0,90])
+                self.get_logger().info(f'플레이싱시 필요시 90도 회전')
+
+                # 스왑
+                width = item.size.width
+                height = item.size.height
+                item.size.width = height
+                item.size.height = width
+
+
             # self.robot.move_to_relative_pose(Pose3D(placement.pose.x -62.725, placement.pose.y -581.752, 143.232 - 5+200, 101.222, 178.691, 11.537)) 
+            # self.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 + 200, 101.222, 178.691, 11.537)) # 경유 지점
             self.robot.move_to_relative_pose(Pose3D(0,0,placement.pose.z -200,0,0,0)) # 바닥에서 올라온 높이가 200임
-            self.robot.close_gripper(width_mm=item.size.height +3) # 잡고 있는 상태에서 1mm열림
+
+
+
+            # 테스트 로그
+            self.get_logger().info(
+                f"[ITEM] id={item.item_id}, name={item.name}, "
+                f"pose=({item.pose.x:.3f}, {item.pose.y:.3f}, {item.pose.z:.3f}, "
+                f"{item.pose.roll:.3f}, {item.pose.pitch:.3f}, {item.pose.yaw:.3f}), "
+                f"size=({item.size.width}, {item.size.depth}, {item.size.height}), "
+                f"durability={item.durability}"
+            )
+
+
+            self.robot.close_gripper(width_mm = self.robot.last_grip_width_mm +4) # 잡고 있는 상태에서 1mm열림
             self.robot.move_to_relative_pose(Pose3D(0,0,200,0,0,0)) 
             self.robot.move_to_relative_pose(Pose3D(0,0,0,0,0,0)) # 마지막 작업 스킵되는 문제로 빈 move 작성
 
 
+    # 피드백
+    def _publish_item_completed_feedback(
+        self,
+        goal_handle,
+        plan: PackingPlan,
+        completed_count: int,
+        total_count: int,
+    ) -> None:
+        feedback = ExecutePacking.Feedback()
+
+        message = (
+            f"[{completed_count}/{total_count}] "
+            f"박스 적재 완료 | item_name={plan.item.name}, "
+            f"item_id={plan.item.item_id}, "
+            f"task_index={plan.task_index}"
+        )
+
+        # action feedback 정의를 아직 못 본 상태라
+        # 존재하는 필드만 안전하게 채운다.
+        if hasattr(feedback, "message"):
+            feedback.message = message
+        if hasattr(feedback, "item_name"):
+            feedback.item_name = plan.item.name
+        if hasattr(feedback, "item_id"):
+            feedback.item_id = plan.item.item_id
+        if hasattr(feedback, "task_index"):
+            feedback.task_index = plan.task_index
+        if hasattr(feedback, "completed_count"):
+            feedback.completed_count = completed_count
+        if hasattr(feedback, "total_count"):
+            feedback.total_count = total_count
+        if hasattr(feedback, "success"):
+            feedback.success = True
+
+        goal_handle.publish_feedback(feedback)
+
+        self.get_logger().info(
+            f"feedback 전송 완료 | "
+            f"{completed_count}/{total_count} | {plan.item.name}"
+        )
 
 
 
-
-
-
-        #============ 테스트 시작============
-        # self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0))
-        # self.robot.move_to_pose(Pose3D(-62.725, -581.752, 143.232 - 5 +200 , 101.222, 178.691, 11.537)) 
-        #============ 테스트 종료============
-
-
-
-
+    def publish_progress_feedback(
+        self,
+        goal_handle,
+        completed_count: int,
+        total_count: int,
+        start_time: float,
+    ) -> None:
+        feedback = ExecutePacking.Feedback()
+        feedback.progress = f"{completed_count}/{total_count}"
+        feedback.runtime = int(time.time() - start_time)
+        goal_handle.publish_feedback(feedback)
         
 
 
@@ -477,65 +570,126 @@ class ExecutePackingServer(Node):
     def execute_callback(self, goal_handle):
         self.get_logger().info("execute_callback()!!!")
 
-        # # 스캔위치
-        # self.robot.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90))
-        
-        # self.robot.close_gripper()
-        # return
-
-
-
-        # 로봇 실행중
         self._busy = True
         result = ExecutePacking.Result()
-        try:
 
-            # 클라이언트 요청 받음
+        try:
+            start_time = time.time()
+
             request = goal_handle.request
             self.get_logger().info(f"클라이언트 데이터 수신 완료")
-            # 계획
             self.get_logger().info(f"계획 작성 시작")
 
             packingPlanList: PackingPlanList = make_packing_plan_list(
                 pick_items=request.pick_items,
                 place_items=request.place_items,
-                logger=self.get_logger(),
+                logger=self.get_logger()
             )
             self.get_logger().info(f"계획 작성 완료")
 
-
             self.get_logger().info(f"초기 위치로 이동")
-            # todo release 코드
-            self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0)) # 안전 장치
+            self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0))
             self.robot.move_ready()
+
+
+
+
+            # #=================== 테스트 진행 ===============
+            # 스캔위치
+            # self.robot.move_to_relative_pose(Pose3D(0,0,150,0,0,0))
+            # self.robot.move_to_pose(Pose3D(260 ,50 , 535 + 10, 90, 180, 90)) 
+            # self.robot.close_gripper(width_mm=50)
+            # self.robot.close_gripper(width_mm=50 +1)
+       
+            # return
+
+      
+
+            # item = packingPlanList.planList[0].item
+
+            # self.get_logger().info(f'물체 최초 pick 시작 > 물체: {item.name}')
+
+            # # 잡는 높이 조정(물체 중심 z - 그리퍼 너비에 따른 뎁스 오프셋값)
+            # griper_depth_offset = get_gripper_depth_offset(item.size.height)
+            # self.get_logger().info(f'물체 최초 pick 단계 > griper_depth_offset: {griper_depth_offset}')
+
+            # pick_z = item.pose.z - griper_depth_offset
+
+            
+            # # 로봇 물체 접근
+            # self.robot.move_to_pose(
+            #     Pose3D(
+            #         x=item.pose.x,
+            #         y=item.pose.y,
+            #         z=pick_z + 200,
+            #         roll = 90,
+            #         pitch = 180,
+            #         yaw = 90,
+            #     )
+            # )
+
+            # self.robot.open_gripper()
+            
+            # # 그대로 아래로 내려가기
+            # self.robot.move_to_relative_pose(Pose3D(0,0,-200,0,0,0))
+
+            # # yaw 만큼 회전
+            # self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, item.pose.yaw -90])
+            # self.get_logger().info(f'물체 최초 pick 단계 > item.pose.yaw: {item.pose.yaw}')
+
+            # # # 잡기
+            # self.robot.close_gripper(width_mm=item.size.height)
+
+            # # 그대로 올라오기
+            # self.robot.move_to_relative_pose(Pose3D(0,0,200,0,0,0))
+
+            # # 물체 정렬 
+            # self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, -item.pose.yaw])
+
+            # # 물체 상태 변경
+            # item.pose.yaw -= item.pose.yaw
+            # self.get_logger().info(f'물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : {item.pose.yaw}')
+
+            # return
+
+        
+            # #=================== 테스트 완료 ===============
+
+
             isComplet = execute_plan_with_callbacks(
                 planList=packingPlanList,
                 excute_init_object_pick=self.excute_init_object_pick,
                 excute_align_object=self.align_object,
                 execute_pick_and_place_to_box=self.pick_and_place_to_box,
+                on_item_completed=lambda completed_count, total_count, plan: (
+                    self.publish_progress_feedback(
+                        goal_handle=goal_handle,
+                        completed_count=completed_count,
+                        total_count=total_count,
+                        start_time=start_time,
+                    )
+                ),
             )
 
             if isComplet:
                 self.get_logger().info(f"패킹 작업 완료")
                 self.robot.move_ready()
 
-
             goal_handle.succeed()
             result.success = True
             return result
-        except Exception as e:
 
+        except Exception as e:
             self.get_logger().error(f"[익셉션 발생] {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
-
 
             self.get_logger().info(f"패킹 작업 실패")
             goal_handle.abort()
             result.success = False
             return result
+
         finally:
-            # self.get_logger().info(f"안 바뻐짐")
             self._busy = False
 
 

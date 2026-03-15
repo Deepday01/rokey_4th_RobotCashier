@@ -1,16 +1,262 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ros2 run cashier_execute_packing execute_packing_server
 _robot_id =dsr01
 _robot_model =m0609
 _srv_name_prefix =
 _topic_name_prefix =
-[INFO] [1773400195.558713022] [dsr01.execute_packing_server]: goal_callback()!!!
-[INFO] [1773400195.560210109] [dsr01.execute_packing_server]: execute_callback()!!!
-[INFO] [1773400195.560670830] [dsr01.execute_packing_server]: 클라이언트 데이터 수신 완료
-[INFO] [1773400195.561099595] [dsr01.execute_packing_server]: 계획 작성 시작
-[INFO] [1773400195.561628032] [dsr01.execute_packing_server]: 계획 작성 완료
-[INFO] [1773400195.562052106] [dsr01.execute_packing_server]: 초기 위치로 이동
-[INFO] [1773400200.299504315] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: milk
-[INFO] [1773400200.299730493] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 0.0
+[INFO] [1773470132.514353677] [dsr01.execute_packing_server]: goal_callback()!!!
+[INFO] [1773470132.515083435] [dsr01.execute_packing_server]: execute_callback()!!!
+[INFO] [1773470132.515310191] [dsr01.execute_packing_server]: 클라이언트 데이터 수신 완료
+[INFO] [1773470132.515488868] [dsr01.execute_packing_server]: 계획 작성 시작
+[INFO] [1773470132.515787866] [dsr01.execute_packing_server]: [MODEL_CONVERT] 변환 시작 | pick_items=7, place_items=7
+[INFO] [1773470132.516377970] [dsr01.execute_packing_server]: [MODEL_CONVERT] ROS Goal -> Internal Model 변환 결과
+{
+  "items": [
+    {
+      "item_id": "caramel_1",
+      "name": "caramel",
+      "pose": {
+        "x": 422.0,
+        "y": 55.3,
+        "z": 233.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": -10.193912091088947
+      },
+      "size": {
+        "width": 82,
+        "depth": 32,
+        "height": 54
+      },
+      "durability": 1
+    },
+    {
+      "item_id": "eclipse_red",
+      "name": "eclipse_red",
+      "pose": {
+        "x": 174.8,
+        "y": 67.5,
+        "z": 232.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": -29.2912109454698
+      },
+      "size": {
+        "width": 85,
+        "depth": 31,
+        "height": 48
+      },
+      "durability": 5
+    },
+    {
+      "item_id": "insect",
+      "name": "insect",
+      "pose": {
+        "x": 286.2,
+        "y": 90.9,
+        "z": 242.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": -21.058553380712453
+      },
+      "size": {
+        "width": 91,
+        "depth": 51,
+        "height": 65
+      },
+      "durability": 4
+    },
+    {
+      "item_id": "eclipse_gre",
+      "name": "eclipse_gre",
+      "pose": {
+        "x": 385.8,
+        "y": 142.4,
+        "z": 232.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": -30.249129003121794
+      },
+      "size": {
+        "width": 85,
+        "depth": 31,
+        "height": 48
+      },
+      "durability": 5
+    },
+    {
+      "item_id": "cream",
+      "name": "cream",
+      "pose": {
+        "x": 178.5,
+        "y": 190.2,
+        "z": 234.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 1.9372149982733282
+      },
+      "size": {
+        "width": 125,
+        "depth": 34,
+        "height": 44
+      },
+      "durability": 3
+    },
+    {
+      "item_id": "candy",
+      "name": "candy",
+      "pose": {
+        "x": 410.0,
+        "y": 259.9,
+        "z": 243.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": -1.4570857404661126
+      },
+      "size": {
+        "width": 110,
+        "depth": 52,
+        "height": 85
+      },
+      "durability": 2
+    },
+    {
+      "item_id": "caramel_2",
+      "name": "caramel",
+      "pose": {
+        "x": 185.7,
+        "y": 272.1,
+        "z": 233.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": -28.837750215872063
+      },
+      "size": {
+        "width": 82,
+        "depth": 32,
+        "height": 54
+      },
+      "durability": 1
+    }
+  ],
+  "placements": [
+    {
+      "object_index": 5,
+      "pose": {
+        "x": 257.5,
+        "y": 75.0,
+        "z": 25.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 90.0
+      }
+    },
+    {
+      "object_index": 2,
+      "pose": {
+        "x": 325.0,
+        "y": 60.0,
+        "z": 25.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 90.0
+      }
+    },
+    {
+      "object_index": 1,
+      "pose": {
+        "x": 377.5,
+        "y": 60.0,
+        "z": 17.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 90.0
+      }
+    },
+    {
+      "object_index": 3,
+      "pose": {
+        "x": 345.0,
+        "y": 127.5,
+        "z": 17.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "object_index": 0,
+      "pose": {
+        "x": 345.0,
+        "y": 127.5,
+        "z": 42.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 0.0
+      }
+    },
+    {
+      "object_index": 6,
+      "pose": {
+        "x": 377.5,
+        "y": 55.0,
+        "z": 42.5,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 90.0
+      }
+    },
+    {
+      "object_index": 4,
+      "pose": {
+        "x": 282.5,
+        "y": 37.5,
+        "z": 55.0,
+        "roll": 0.0,
+        "pitch": 0.0,
+        "yaw": 0.0
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+[INFO] [1773472765.502324077] [dsr01.execute_packing_server]: 계획 작성 완료
+[INFO] [1773472765.502492407] [dsr01.execute_packing_server]: 초기 위치로 이동
+[INFO] [1773472769.754392565] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: candy
+[INFO] [1773472769.754608891] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 16.5
+[INFO] [1773472777.254850889] [dsr01.execute_packing_server]: 물체 회전: -1.4570857404661126
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -18,44 +264,36 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-[INFO] [1773400210.299705348] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: 0.0
-[INFO] [1773400210.299918557] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=3
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773472781.254970650] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: -1.4570857404661126
+[INFO] [1773472781.255188363] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=85
 Start moving gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-An internal- or external grip is detected.
-[INFO] [1773400216.624618281] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
-[INFO] [1773400216.624828062] [dsr01.execute_packing_server]: 회전 스테이지 스킵
-[INFO] [1773400224.336847641] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=6
+[INFO] [1773472785.355040273] [dsr01.execute_packing_server]: 물체 정렬: 1.4570857404661126
+[INFO] [1773472785.355255211] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
+[INFO] [1773472785.355442353] [dsr01.execute_packing_server]: 회전 스테이지 스킵
+[INFO] [1773472794.355099934] [dsr01.execute_packing_server]: 플레이싱시 필요시 90도 회전
+[INFO] [1773472797.254769807] [dsr01.execute_packing_server]: [ITEM] id=candy, name=candy, pose=(410.000, 259.900, 243.000, 0.000, 0.000, 0.000), size=(85, 52, 110), durability=2
+[INFO] [1773472797.254998509] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=111
+
 Start moving gripper.
-An internal- or external grip is detected.
-[INFO] [1773400224.359037922] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: snack_box
-[INFO] [1773400224.359242433] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 0.0
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773472801.079494033] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: insect
+[INFO] [1773472801.079732097] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 9.0
+[INFO] [1773472808.254422281] [dsr01.execute_packing_server]: 물체 회전: -21.058553380712453
 Start opening gripper.
 A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-[INFO] [1773400225.658692939] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: 0.0
-[INFO] [1773400225.658896479] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=3
+[INFO] [1773472811.554975339] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > item.pose.yaw: -21.058553380712453
+[INFO] [1773472811.555193339] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=65
 Start moving gripper.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
@@ -63,49 +301,52 @@ A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
 A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-A motion is ongoing so new commands are not accepted.
-An internal- or external grip is detected.
-[INFO] [1773400227.062746483] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
-[INFO] [1773400227.062947820] [dsr01.execute_packing_server]: 회전 스테이지 스킵
-[INFO] [1773400227.065010997] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=6
+[INFO] [1773472816.454812114] [dsr01.execute_packing_server]: 물체 정렬: 21.058553380712453
+[INFO] [1773472816.455024123] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > 정렬된 물체 yaw 확인 : 0.0
+[INFO] [1773472816.455204534] [dsr01.execute_packing_server]: 회전 스테이지 스킵
+[INFO] [1773472823.554591902] [dsr01.execute_packing_server]: 플레이싱시 필요시 90도 회전
+[INFO] [1773472826.455510106] [dsr01.execute_packing_server]: [ITEM] id=insect, name=insect, pose=(286.200, 90.900, 242.500, 0.000, 0.000, 0.000), size=(65, 51, 91), durability=4
+[INFO] [1773472826.456010918] [dsr01.execute_packing_server]: close_gripper 호출 > width_mm=92
 Start moving gripper.
-An internal- or external grip is detected.
-[INFO] [1773400227.083263141] [dsr01.execute_packing_server]: 패킹 작업 완료
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+A motion is ongoing so new commands are not accepted.
+[INFO] [1773472830.178945952] [dsr01.execute_packing_server]: 물체 최초 pick 시작 > 물체: eclipse_red
+[INFO] [1773472830.179170469] [dsr01.execute_packing_server]: 물체 최초 pick 단계 > griper_depth_offset: 3.6000000000000227
 ^CTraceback (most recent call last):
-  File "/home/rokey/rokey_4th_RobotCashier/install/cashier_execute_packing/lib/python3.10/site-packages/cashier_execute_packing/robot_control.py", line 548, in main
+  File "/home/rokey/rokey_4th_RobotCashier/build/cashier_execute_packing/cashier_execute_packing/robot_control.py", line 692, in main
     rclpy.spin(node)
   File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/__init__.py", line 229, in spin
     executor.spin_once()
   File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 776, in spin_once
     self._spin_once_impl(timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 771, in _spin_once_impl
+    handler()
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/task.py", line 254, in __call__
+    self._handler.send(None)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/action/server.py", line 337, in _execute_goal
+    execute_result = await await_or_execute(execute_callback, goal_handle)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 107, in await_or_execute
+    return callback(*args)
+  File "/home/rokey/rokey_4th_RobotCashier/build/cashier_execute_packing/cashier_execute_packing/robot_control.py", line 649, in execute_callback
+    isComplet = execute_plan_with_callbacks(
+  File "/home/rokey/rokey_4th_RobotCashier/build/cashier_execute_packing/cashier_execute_packing/packing_executor.py", line 140, in execute_plan_with_callbacks
+    excute_init_object_pick(plan)
+  File "/home/rokey/rokey_4th_RobotCashier/build/cashier_execute_packing/cashier_execute_packing/robot_control.py", line 332, in excute_init_object_pick
+    self.robot.movej_to_relative_pose([0, 0, 0, 0, 0, item.pose.yaw -90])
+  File "/home/rokey/rokey_4th_RobotCashier/build/cashier_execute_packing/cashier_execute_packing/robot_control.py", line 112, in movej_to_relative_pose
+    movej(movej_list, vel=VELOCITY, acc=ACC, mod=DR_MV_MOD_REL)
+  File "/home/rokey/rokey_4th_RobotCashier/install/dsr_common2/lib/python3.10/site-packages/DSR_ROBOT2.py", line 2481, in movej
+    ret = _movej(pos, vel, acc, time, radius, mod, ra, v, a, t, r, _async=0)
+  File "/home/rokey/rokey_4th_RobotCashier/install/dsr_common2/lib/python3.10/site-packages/DSR_ROBOT2.py", line 2597, in _movej
+    rclpy.spin_until_future_complete(g_node, future)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/__init__.py", line 256, in spin_until_future_complete
+    executor.spin_until_future_complete(future, timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 312, in spin_until_future_complete
+    self.spin_once_until_future_complete(future, timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 783, in spin_once_until_future_complete
+    self._spin_once_impl(timeout_sec)
   File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 765, in _spin_once_impl
     handler, entity, node = self.wait_for_ready_callbacks(timeout_sec=timeout_sec)
   File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 748, in wait_for_ready_callbacks
-    return next(self._cb_iter)
-  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 645, in _wait_for_ready_callbacks
-    wait_set.wait(timeout_nsec)
-KeyboardInterrupt
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/rokey/rokey_4th_RobotCashier/install/cashier_execute_packing/lib/cashier_execute_packing/execute_packing_server", line 33, in <module>
-    sys.exit(load_entry_point('cashier-execute-packing==0.0.0', 'console_scripts', 'execute_packing_server')())
-  File "/home/rokey/rokey_4th_RobotCashier/install/cashier_execute_packing/lib/python3.10/site-packages/cashier_execute_packing/robot_control.py", line 551, in main
-    rclpy.shutdown()
-  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/__init__.py", line 130, in shutdown
-    _shutdown(context=context)
-  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/utilities.py", line 58, in shutdown
-    return context.shutdown()
-  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/context.py", line 102, in shutdown
-    self.__context.shutdown()
-rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:241
-[ros2run]: Process exited with failure 1
-rokey@rokey-Katana-17-B13VFK:~/rokey_4th_RobotCashier$ 
-
