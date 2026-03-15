@@ -244,15 +244,29 @@ packing 시스템의 전체 동작을 관리하는 workflow 노드를 실행합�
 ```ruby
 ros2 run cashier_workflow workflow_node
 ```
-### Step 4. Launch 파일 실행
+### Step 4. Voice Node 실행
 
-테스트 및 통합 실행을 위해 launch 파일을 사용할 수 있습니다.
+Voice Node를 실행합니다.
 ```ruby
-ros2 launch cashier_workflow demo_split.launch.py
+ros2 run cashier_voice get_keyword
 ```
-디버그 모드 실행
+### Step 5. Vision Node 실행
+
+Vision Node를 실행합니다.
 ```ruby
-ros2 launch cashier_workflow demo_split_dev.launch.py debug_mode:=true
+ros2 run cashier_vision vision_scan_items_action_server
+```
+### Step 6. PlanPacking Node 실행
+
+PlanPacking Node를 실행합니다.
+```ruby
+ros2 run cashier_plan_packing packing_node
+```
+### Step 6. Execute Packing Node 실행
+
+Execute Packing Node를 실행합니다.
+```ruby
+ros2 run cashier_execute_packing execute_packing_server
 ```
 
 # ✔ 실행 순서 요약
