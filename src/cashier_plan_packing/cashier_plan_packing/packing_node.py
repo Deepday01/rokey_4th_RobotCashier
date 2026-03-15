@@ -17,6 +17,64 @@ from .inference import (
 )
 
 BASKET_WORLD_ORIGIN = (220.0, 20.0, 5.0)
+
+TRAINED_ITEM_SPECS = {
+    "cream": {
+        "train_name": "애크논크림",
+        "size": (125, 35, 20),
+        "durability": 3,
+    },
+    "caramel1": {
+        "train_name": "카라멜1",
+        "size": (70, 45, 25),
+        "durability": 1,
+    },
+    "caramel2": {
+        "train_name": "카라멜2",
+        "size": (70, 45, 25),
+        "durability": 1,
+    },
+    "insect": {
+        "train_name": "나비 블럭",
+        "size": (80, 50, 40),
+        "durability": 4,
+    },
+    "candy": {
+        "train_name": "아이셔",
+        "size": (110, 75, 40),
+        "durability": 2,
+    },
+    "halls": {
+        "train_name": "이클립스",
+        "size": (80, 50, 15),
+        "durability": 5,
+    },
+    "eclipse_red": {
+        "train_name": "이클립스빨강",
+        "size": (80, 45, 25),
+        "durability": 5,
+    },
+    "eclipse_gre": {
+        "train_name": "이클립스노랑",
+        "size": (80, 45, 25),
+        "durability": 5,
+    },
+}
+
+
+def normalize_item_name(name: str) -> str:
+    if not name:
+        return ""
+
+    normalized = name.strip().lower()
+
+    # 혹시 caramel 로만 들어오는 경우도 대비
+    if normalized == "caramel":
+        return "caramel1"
+
+    return normalized
+
+
 def objects_from_request_items(items):
     if len(items) > MAX_OBJECTS:
         raise ValueError(f"received {len(items)} items, but MAX_OBJECTS={MAX_OBJECTS}")
@@ -24,30 +82,35 @@ def objects_from_request_items(items):
     objects = []
 
     for episode_index, item in enumerate(items):
-        sx = int(item.width)
-        sy = int(item.depth)
-        sz = int(item.height)
-        durability = int(item.durability)
+        raw_name = item.name if item.name else f"item_{episode_index}"
+        mapped_name = normalize_item_name(raw_name)
 
-        if sx <= 0 or sy <= 0 or sz <= 0:
+        if mapped_name not in TRAINED_ITEM_SPECS:
             raise ValueError(
-                f"invalid size at index {episode_index}: ({sx}, {sy}, {sz})"
+                f"unknown item name at index {episode_index}: '{raw_name}'. "
+                f"supported names: {list(TRAINED_ITEM_SPECS.keys())}"
             )
 
+        spec = TRAINED_ITEM_SPECS[mapped_name]
+        sx, sy, sz = spec["size"]
+        durability = spec["durability"]
+
         objects.append({
-            "name": item.name if item.name else f"item_{episode_index}",
+            # RL 모델에는 학습 당시 이름/크기/내구도 사용
+            "name": spec["train_name"],
             "item_id": item.item_id,
             "size": (sx, sy, sz),
             "durability": durability,
+
+            # 응답 순서 복원을 위해 원래 인덱스는 유지
             "base_index": episode_index,
             "episode_index": episode_index,
+
+            # 필요하면 디버깅용으로 원본 이름도 남길 수 있음
+            "request_name": raw_name,
         })
 
-    def get_name(obj):
-        return obj["name"]
-
-    objects.sort(key=get_name)
-
+    objects.sort(key=lambda obj: obj["name"])
     return objects
 def placements_to_response_msgs(placements):
     response_msgs = []
@@ -65,7 +128,7 @@ def placements_to_response_msgs(placements):
         local_cz = float(p.position[2] + sz / 2.0)
 
         msg.x = bx + local_cx
-        msg.y = by - local_cy
+        msg.y = by + local_cy
         msg.z = bz + local_cz
 
         msg.roll = float(p.rotation_rpy[0])
@@ -104,6 +167,8 @@ class PlanPackingNode(Node):
                 return response
 
             objects = objects_from_request_items(request.items)
+            self.get_logger().info(f"request : {request.items}")
+            self.get_logger().info(f"objects : {objects}")
             self.get_logger().info(f"received {len(objects)} items")
 
             best_placements, best_reward, best_plan, trial_logs, best_post_logs = run(objects)
