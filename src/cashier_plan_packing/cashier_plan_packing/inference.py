@@ -69,9 +69,9 @@ def size_to_rpy(original, rotated):
         (ox, oy, oz): (0, 0, 0),
         (ox, oz, oy): (90, 0, 0),
         (oy, ox, oz): (0, 0, 90),
-        (oy, oz, ox): (0, 90, 0),
+        (oy, oz, ox): (90, 0, 90),
         (oz, ox, oy): (90, 90, 0),
-        (oz, oy, ox): (0, 90, 90),
+        (oz, oy, ox): (0, 90, 0),
     }
     return mapping.get(tuple(rotated), (0, 0, 0))
 
