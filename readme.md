@@ -107,7 +107,7 @@ vision node는 계산대에 놓인 물체 정보를 인식합니다.
 ### 🔹 Packing Plan Node Flow
 
 <p align="center">
-<img width="400" src="PLAN_FLOW_IMAGE_URL">
+<img width="801" height="519" alt="Image" src="https://github.com/user-attachments/assets/79cfdd7e-3806-46ff-927e-8c1d3d7db43a" />
 </p>
 
 plan_packing node는 **물체 적재 계획을 계산**합니다.
