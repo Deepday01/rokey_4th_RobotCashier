@@ -36,9 +36,9 @@
 ---
 
 ### 🔹 Main Flow
-
-<img width="321" height="591" alt="image" src="https://github.com/user-attachments/assets/packing_main_flow.png" />
-
+<p align="center">
+<img width="407" height="366" alt="Image" src="https://github.com/user-attachments/assets/567fb323-39d5-41d8-bba3-fec84e034479" />
+</p>
 *사용자 인터랙션부터 로봇 적재까지의 전체 시스템 흐름*
 
 ---
@@ -179,17 +179,39 @@ execute_packing node는 packing plan을 기반으로 로봇을 제어하여 실�
 
 프로젝트 실행에 필요한 라이브러리입니다.
 
-- Python >= 3.10
-- ROS2 Humble
-- rclpy
+- **Python >= 3.10**  
+- **ROS2 Humble**  
+- **rclpy**
 
-### Deep Learning
-- torch
-- numpy
+### AI / LLM
+- openai  
+- langchain  
+- langchain-openai  
 
-### Visualization
-- matplotlib
-- mpl_toolkits.mplot3d
+### Voice Processing
+- openwakeword  
+- edge-tts  
+- sounddevice  
+- pyaudio  
+
+### Computer Vision
+- ultralytics  
+- opencv-python  
+- pupil-apriltags  
+- pyzbar  
+
+### Deep Learning / Numerical
+- torch  
+- numpy  
+- scipy  
+
+### Environment / Utilities
+- python-dotenv  
+- pymodbus==2.5.3  
+
+### ROS Vision Interface
+- ros-humble-cv-bridge  
+- ros-humble-image-transport  
 
 ---
 
