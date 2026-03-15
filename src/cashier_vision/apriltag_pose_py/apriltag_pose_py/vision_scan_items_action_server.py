@@ -52,7 +52,7 @@ class VisionScanItemsActionServer(Node):
 
             # yolo
             "model_path": default_model_path,
-            "conf_thres": 0.15,
+            "conf_thres": 0.25,
             "iou_thres": 0.45,
             "max_det": 20,
             "imgsz": 960,
@@ -1286,7 +1286,7 @@ class VisionScanItemsActionServer(Node):
         return yaw_deg
 
     def apply_yaw_reference_shift(self, yaw_deg: float) -> float:
-        return self.normalize_yaw_deg_180(yaw_deg + 90.0)
+        return self.normalize_yaw_deg_180(yaw_deg)
 
     def yaw_to_axis_0_180(self, yaw_deg: float) -> float:
         y = self.normalize_yaw_deg_180(yaw_deg)
