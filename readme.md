@@ -140,13 +140,7 @@ execute_packing node는 **로봇을 제어하여 실제 적재 동작을 수행*
 
 ### 🔹 RL 학습 로직
 
-<p align="center">
-<img width="400" src="PACKING_ALGORITHM_FLOW1">
-</p>
 
-<p align="center">
-<img width="400" src="PACKING_ALGORITHM_FLOW2">
-</p>
 
 *환경 상태 입력 → 물체 선택 및 배치 위치 결정 → 보상을 통한 packing 정책 학습 과정*
 
