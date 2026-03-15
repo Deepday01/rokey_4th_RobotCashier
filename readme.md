@@ -37,7 +37,7 @@
 
 ### 🔹 Main Flow
 <p align="center">
-<img width="407" height="366" alt="Image" src="https://github.com/user-attachments/assets/567fb323-39d5-41d8-bba3-fec84e034479" />
+<img width="413" height="374" alt="Image" src="https://github.com/user-attachments/assets/54775901-015c-46dd-bb69-c824a020adae" />
 </p>
 *사용자 인터랙션부터 로봇 적재까지의 전체 시스템 흐름*
 
