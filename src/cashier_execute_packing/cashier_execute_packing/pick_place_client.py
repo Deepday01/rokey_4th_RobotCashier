@@ -6,6 +6,7 @@ from rclpy.node import Node
 
 from cashier_interfaces.action import ExecutePacking
 from cashier_interfaces.msg import Item, Placement
+from cashier_execute_packing.dummy_test_code import *
 
 
 class ExecutePackingClient(Node):
@@ -219,22 +220,26 @@ class ExecutePackingClient(Node):
         place6.yaw = 90.0
 
 
-        goal_msg.pick_items = [
-            item1, 
-            item2,
-            item3,
-            item4,
-            item5,
-            item6,
-        ]
-        goal_msg.place_items = [
-            place1, 
-            place2,
-            place3,
-            place4,
-            place5,
-            place6,
-        ]
+        # 리얼 테스트 데이터
+        goal_msg.pick_items = pick_items 
+        goal_msg.place_items = place_items
+
+        # goal_msg.pick_items = [
+        #     item1, 
+        #     item2,
+        #     item3,
+        #     item4,
+        #     item5,
+        #     item6,
+        # ]
+        # goal_msg.place_items = [
+        #     place1, 
+        #     place2,
+        #     place3,
+        #     place4,
+        #     place5,
+        #     place6,
+        # ]
 
         # goal_msg.pick_items = [item1]
         # goal_msg.place_items = [place1]
@@ -271,11 +276,10 @@ class ExecutePackingClient(Node):
         result_future.add_done_callback(self.result_callback)
 
     def feedback_callback(self, feedback_msg):
-
         feedback = feedback_msg.feedback
 
         self.get_logger().info(
-            f"8️⃣ 실행 중 Feedback 수신 | {feedback}"
+            f"8️⃣ 실행 중 Feedback 수신 | progress={feedback.progress}, runtime={feedback.runtime}s"
         )
 
     def result_callback(self, future):

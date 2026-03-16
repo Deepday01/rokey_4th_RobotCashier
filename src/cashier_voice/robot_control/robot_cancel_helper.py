@@ -20,7 +20,7 @@ TOOLCHARGER_IP = "192.168.1.1"
 TOOLCHARGER_PORT = "502"
 
 # virtual launch일 때 True
-SIMULATION_MODE = True
+SIMULATION_MODE = False
 
 # robot_control.py의 init_robot()와 같은 준비 자세
 JREADY = [0, 0, 90, 0, 90, 0]
@@ -164,7 +164,7 @@ def remove_item_by_pose(target_pose, target_name, drop_pose=None):
 
         # 2. 물체의 방향만큼 그리퍼 회전
         cur_j = get_current_posj()
-        cur_j[5] = cur_j[5] + rz
+        cur_j[5] = cur_j[5] + rz - 90
         movej(cur_j, vel=VELOCITY, acc=ACC)
         mwait()
 

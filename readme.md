@@ -1,39 +1,39 @@
-# [차곡차봇 - Auto Packing Cashier]
-> **조 이름:** [F-1 - ROKEY]  
-> **팀원:** [문홍일_박지훈_이승민_이창석_최대혁]
+# cobot_ws
 
----
+ROS2 workspace 로키_4번째_로봇캐셔솔루션
 
-# 1. 📦 시스템 설계 및 플로우 차트
-프로젝트의 전체적인 구조와 소프트웨어 흐름도입니다.
+## Structure
+- src/: source packages
+- bringup: launch and integration
+- config: parameter files
 
 ## 1-1. 노드 설계도 (Node Architecture)
 <p align="center">
 <img width="1429" height="786" alt="Image" src="https://github.com/user-attachments/assets/ef689952-f678-47bb-b265-1b147d71e186" />
 </p>
 
-### 노드 구성
+main : 배초/최종 제출용
 
-**Main Node**
+dev : 팀 통합 브랜치
 
-- workflow_node
+feature/기능명 : 개인 작업 브런치
 
-**Sub Nodes**
+- feature/voice
+- feature/vision
+- feature/planning
+- feature/execute
 
-- voice_node  
-- vision_node  
-- plan_packing_node  
-- execute_packing_node  
+fix/노드명/버그명
 
-각 노드는 ROS2 기반으로 통신하며 workflow node가 전체 시스템 흐름을 제어합니다.
+- fix/vision/debug
 
----
+## 관리
 
-## 1-2. 플로우 차트 (Flow Chart)
+1. 개인 작업 브랜치의에서 작업후 문제 없을 시 **dev로 merge**
+2. dev로 테스팅 완료시 **main 으로 merge**
 
-프로젝트의 전체 동작 흐름과 주요 기능별 처리 과정을 나타냅니다.
 
----
+# 작업 내용
 
 ### 🔹 Main Flow
 <p align="center">
@@ -269,10 +269,93 @@ Execute Packing Node를 실행합니다.
 ros2 run cashier_execute_packing execute_packing_server
 ```
 
-# ✔ 실행 순서 요약
+## 2. 인터페이스 폴더 구조
 
-ROS DOMAIN 설정
+```jsx
+src/cashier_interfaces/
+├── msg/
+│   ├── Item.msg
+│   └── Placement.msg
+├── srv/
+│   └── ComputePackingPlan.srv
+├── action/
+│   ├── VoiceSession.action
+│   ├── ScanItems.action
+│   └── ExecutePacking.action
+├── CMakeLists.txt
+└── package.xml
+```
 
-ROS2 Workspace 빌드
+## 3. src아래 패키지 안 내용물들
 
-Workflow Node 실행 또는 launch 파일 실행
+```jsx
+workflow_node.py
+각자의 코드들
+```
+
+## 4. casher_bringup
+
+```
+src/cashier_bringup/
+├── launch/
+│   ├── system.launch.py          # 최종 데모용 (전체 플로우)
+│   ├── workflow_only.launch.py   # 개별 기능 테스트용
+│   ├── voice_only.launch.py      
+│   ├── vision_only.launch.py
+│   └── debug.launch.py           # 개발 중 디버깅용(자유롭게 노드 체크)     
+├── config/
+│   ├── example.yaml              # 설정파일 필요하면 쓰고 아님 말고
+├── package.xml
+└── setup.py or CMakeLists.txt
+```
+
+# 참고사항
+
+<aside>
+💡
+
+## Q. config 안의 .yaml 파일은 뭔가?
+
+**정의**
+각 노드의 설정값(parameter)을 따로 빼놓는 파일
+
+**의의**
+코드 안에 하드코딩하지 말고 바깥에서 바꿀 수 있게 만든 설정 파일
+
+**예시**
+launch 파일에서 노드를 실행할 때)
+
+```python
+Node(
+package='cashier_vision',
+executable='vision_node',
+name='vision_node',
+parameters=['config/vision.yaml']  
+)
+
+# vision.yaml의 parameter를 읽어온다.
+```
+
+**주석**
+필요하다면 적극활용, 아직 어렵다면 PASS
+
+</aside>
+
+
+
+# 실행법
+## 1. workflow node
+### 단독 실행법
+```
+cd ~/cashier_ws/  
+source install/setup.bash   
+ros2 run cashier_workflow workflow_node  
+```
+
+### launch 파일로 실행
+테스트용 더미 런치  
+더미 노드에서 필요한 부분 주석처리해서 사용.  
+```
+ros2 launch cashier_workflow demo_split.launch.py 
+ros2 launch cashier_workflow demo_split_dev.launch.py debug_mode:=true 
+```

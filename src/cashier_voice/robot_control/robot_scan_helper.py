@@ -20,7 +20,7 @@ TOOLCHARGER_IP = "192.168.1.1"
 TOOLCHARGER_PORT = "502"
 
 # virtual launch일 때 True
-SIMULATION_MODE = True
+SIMULATION_MODE = False
 
 # robot_control.py의 init_robot()와 같은 준비 자세
 JREADY = [0, 0, 90, 0, 90, 0]

@@ -39,3 +39,12 @@ def get_gripper_depth_offset(width: float) -> float:
             raise RuntimeError(f"Interpolation failed for width={width}")
 
     return max_depth - depth
+
+
+
+
+
+
+
+
+
