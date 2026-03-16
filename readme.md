@@ -1,53 +1,54 @@
-# cobot_ws
+# [차곡차봇 - Auto Packing Cashier]
+> **조 이름:** [F-1 - ROKEY]  
+> **팀원:** [문홍일_박지훈_이승민_이창석_최대혁]
 
-ROS2 workspace 로키_4번째_로봇캐셔솔루션
+<p align="center">
+<img width="400" height="300" alt="Image" src="https://github.com/user-attachments/assets/ed9a6f9a-1b8b-415e-8164-c52eac897eda" />
+</p>
 
-## Structure
-- src/: source packages
-- bringup: launch and integration
-- config: parameter files
+---
+
+# 1. 📦 시스템 설계 및 플로우 차트
+프로젝트의 전체적인 구조와 소프트웨어 흐름도입니다.
 
 ## 1-1. 노드 설계도 (Node Architecture)
 <p align="center">
 <img width="1429" height="786" alt="Image" src="https://github.com/user-attachments/assets/ef689952-f678-47bb-b265-1b147d71e186" />
 </p>
 
-main : 배초/최종 제출용
+### 노드 구성
 
-dev : 팀 통합 브랜치
+**Main Node**
 
-feature/기능명 : 개인 작업 브런치
+- workflow_node
 
-- feature/voice
-- feature/vision
-- feature/planning
-- feature/execute
+**Sub Nodes**
 
-fix/노드명/버그명
+- voice_node  
+- vision_node  
+- plan_packing_node  
+- execute_packing_node  
 
-- fix/vision/debug
+각 노드는 ROS2 기반으로 통신하며 workflow node가 전체 시스템 흐름을 제어합니다.
 
-## 관리
+---
 
-1. 개인 작업 브랜치의에서 작업후 문제 없을 시 **dev로 merge**
-2. dev로 테스팅 완료시 **main 으로 merge**
+## 1-2. 플로우 차트 (Flow Chart)
 
+프로젝트의 전체 동작 흐름과 주요 기능별 처리 과정을 나타냅니다.
 
-# 작업 내용
+---
 
 ### 🔹 Main Flow
-<p align="center">
-<img width="413" height="374" alt="Image" src="https://github.com/user-attachments/assets/54775901-015c-46dd-bb69-c824a020adae" />
-</p>
+
 *사용자 인터랙션부터 로봇 적재까지의 전체 시스템 흐름*
 
 ---
 
 ### 🔹 통합 Flow
-
-<img width="884" height="661" alt="image" src="https://github.com/user-attachments/assets/packing_flow1.png" />
-<img width="871" height="658" alt="image" src="https://github.com/user-attachments/assets/packing_flow2.png" />
-
+<p align="center">
+<img width="1185" height="813" alt="Image" src="https://github.com/user-attachments/assets/01e5017a-8b83-473c-afe6-e9cae890b75b" />
+</p>
 *각 ROS2 노드가 연동되어 최종 포장 동작으로 이어지는 전체 프로세스*
 
 ---
@@ -55,7 +56,7 @@ fix/노드명/버그명
 ### 🔹 Workflow Node Flow
 
 <p align="center">
-<img width="400" src="WORKFLOW_FLOW_IMAGE_URL">
+<img width="413" height="374" alt="Image" src="https://github.com/user-attachments/assets/54775901-015c-46dd-bb69-c824a020adae" />
 </p>
 
 workflow node는 전체 시스템의 **중앙 제어 역할**을 수행하며 각 노드를 순차적으로 실행합니다.
@@ -72,7 +73,8 @@ workflow node는 전체 시스템의 **중앙 제어 역할**을 수행하며 �
 ---
 
 ### 🔹 Voice Node Flow
-<p align="center"> <img width="400" src="VOICE_FLOW_IMAGE_URL"> </p>
+<p align="center"> <img width="1668" height="742" alt="Image" src="https://github.com/user-attachments/assets/32d855fa-4869-4ab3-93db-06a81ae69f85" /> </p>
+<p align="center"> <img width="638" height="854" alt="Image" src="https://github.com/user-attachments/assets/8e71dd42-d844-477b-aa2f-32cf6c9a027f" />  </p>
 
 voice node는 사용자 음성 명령을 인식하고 시스템 제어 명령으로 변환하는 노드입니다.
 
@@ -89,7 +91,7 @@ voice node는 사용자 음성 명령을 인식하고 시스템 제어 명령으
 
 ### 🔹 Vision Node Flow
 
-<p align="center"> <img width="400" src="VISION_FLOW_IMAGE_URL"> </p>
+<p align="center"> <img width="695" height="730" alt="Image" src="https://github.com/user-attachments/assets/55c5ee85-7592-4c0b-84c0-5879c7388a1b" /> </p>
 
 vision node는 계산대 위 물체를 인식하고 위치 정보를 생성하는 노드입니다.
 
@@ -123,7 +125,7 @@ plan_packing node는 **물체 적재 계획을 계산**합니다.
 
 ### 🔹 Execute Packing Node Flow
 
-<p align="center"> <img width="400" src="EXECUTE_FLOW_IMAGE_URL"> </p>
+<p align="center"> <img width="395" height="756" alt="Image" src="https://github.com/user-attachments/assets/1e007fea-5c87-4ad2-9b96-97b2150674cc" /> </p>
 
 execute_packing node는 packing plan을 기반으로 로봇을 제어하여 실제 적재 동작을 수행하는 노드입니다.
 
@@ -269,93 +271,10 @@ Execute Packing Node를 실행합니다.
 ros2 run cashier_execute_packing execute_packing_server
 ```
 
-## 2. 인터페이스 폴더 구조
+# ✔ 실행 순서 요약
 
-```jsx
-src/cashier_interfaces/
-├── msg/
-│   ├── Item.msg
-│   └── Placement.msg
-├── srv/
-│   └── ComputePackingPlan.srv
-├── action/
-│   ├── VoiceSession.action
-│   ├── ScanItems.action
-│   └── ExecutePacking.action
-├── CMakeLists.txt
-└── package.xml
-```
+ROS DOMAIN 설정
 
-## 3. src아래 패키지 안 내용물들
+ROS2 Workspace 빌드
 
-```jsx
-workflow_node.py
-각자의 코드들
-```
-
-## 4. casher_bringup
-
-```
-src/cashier_bringup/
-├── launch/
-│   ├── system.launch.py          # 최종 데모용 (전체 플로우)
-│   ├── workflow_only.launch.py   # 개별 기능 테스트용
-│   ├── voice_only.launch.py      
-│   ├── vision_only.launch.py
-│   └── debug.launch.py           # 개발 중 디버깅용(자유롭게 노드 체크)     
-├── config/
-│   ├── example.yaml              # 설정파일 필요하면 쓰고 아님 말고
-├── package.xml
-└── setup.py or CMakeLists.txt
-```
-
-# 참고사항
-
-<aside>
-💡
-
-## Q. config 안의 .yaml 파일은 뭔가?
-
-**정의**
-각 노드의 설정값(parameter)을 따로 빼놓는 파일
-
-**의의**
-코드 안에 하드코딩하지 말고 바깥에서 바꿀 수 있게 만든 설정 파일
-
-**예시**
-launch 파일에서 노드를 실행할 때)
-
-```python
-Node(
-package='cashier_vision',
-executable='vision_node',
-name='vision_node',
-parameters=['config/vision.yaml']  
-)
-
-# vision.yaml의 parameter를 읽어온다.
-```
-
-**주석**
-필요하다면 적극활용, 아직 어렵다면 PASS
-
-</aside>
-
-
-
-# 실행법
-## 1. workflow node
-### 단독 실행법
-```
-cd ~/cashier_ws/  
-source install/setup.bash   
-ros2 run cashier_workflow workflow_node  
-```
-
-### launch 파일로 실행
-테스트용 더미 런치  
-더미 노드에서 필요한 부분 주석처리해서 사용.  
-```
-ros2 launch cashier_workflow demo_split.launch.py 
-ros2 launch cashier_workflow demo_split_dev.launch.py debug_mode:=true 
-```
+각 Node 실행
