@@ -7,6 +7,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Item.msg"
   "msg/Placement.msg"
+  "srv/SrvDepthPosition.srv"
   "srv/ComputePackingPlan.srv"
   "action/VoiceSession.action"
   "action/ScanItems.action"

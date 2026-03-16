@@ -23,6 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
             'workflow_node = cashier_workflow.workflow_node:main',
+            'workflow_node_dev = cashier_workflow.workflow_node_dev:main',
             'demo_backend_node = cashier_workflow.demo_backend_node:main',
             'demo_voice_node = cashier_workflow.demo_voice_node:main',
             'demo_vision_node = cashier_workflow.demo_vision_node:main',

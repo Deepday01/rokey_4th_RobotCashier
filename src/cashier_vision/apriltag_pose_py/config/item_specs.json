@@ -1,0 +1,52 @@
+{
+  "caramel": {
+    "name": "caramel",
+    "width": 82,
+    "height": 54,
+    "depth": 32,
+    "durability": 1
+  },
+  "insect": {
+    "name": "insect",
+    "width": 91,
+    "height": 65,
+    "depth": 51,
+    "durability": 4
+  },
+  "candy": {
+    "name": "candy",
+    "width": 110,
+    "height": 85,
+    "depth": 52,
+    "durability": 2
+  },
+  "halls": {
+    "name": "halls",
+    "width": 81,
+    "height": 53,
+    "depth": 25,
+    "durability": 5
+  },
+  "cream": {
+    "name": "cream",
+    "width": 125,
+    "height": 44,
+    "depth": 34,
+    "durability": 3
+  },
+  "eclipse_gre": {
+    "name": "eclipse_gre",
+    "width": 85,
+    "height": 48,
+    "depth": 31,
+    "durability": 5
+  },
+  "eclipse_red": {
+    "name": "eclipse_red",
+    "width": 85,
+    "height": 48,
+    "depth": 31,
+    "durability": 5
+  }
+  
+}
